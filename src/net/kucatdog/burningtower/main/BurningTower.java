@@ -11,11 +11,14 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.files.FileHandle;
+import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.GL10;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
@@ -24,10 +27,13 @@ import com.badlogic.gdx.scenes.scene2d.utils.DragListener;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.JsonReader;
 import com.badlogic.gdx.utils.JsonValue;
+import com.badlogic.gdx.utils.Scaling;
 import com.badlogic.gdx.utils.TimeUtils;
 
 public class BurningTower implements ApplicationListener, GameContext {
 
+	private final int VIRTUAL_WIDTH = 768;
+	private final int VIRTUAL_HEIGHT = 1280;
 	private GameObject background;
 	public static final int nOfFireImages = 2;
 	public static Texture[] fire = new Texture[nOfFireImages];
@@ -37,7 +43,7 @@ public class BurningTower implements ApplicationListener, GameContext {
 
 	private int levelCnt;
 
-	private Array<GameObject> gameObjects = new Array<GameObject>();
+	public static Array<GameObject> gameObjects = new Array<GameObject>();
 	private SpriteBatch batch;
 	private Sprite backgroundSprite;
 	private FileHandle levelFile;
@@ -47,6 +53,8 @@ public class BurningTower implements ApplicationListener, GameContext {
 	private Thread burningThread = new Thread(burner);
 
 	private InputMultiplexer inputMultiplexer;
+	
+	private OrthographicCamera cam;
 
 	public BurningTower() {
 	}
@@ -55,6 +63,7 @@ public class BurningTower implements ApplicationListener, GameContext {
 	public void create() {
 		GameObject.range = 50;
 		Texture.setEnforcePotImages(false);
+		cam = new OrthographicCamera(VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
 
 		levelFile = Gdx.files.internal("data/levelData/level.json");
 		levelData = new JsonReader().parse(levelFile);
@@ -71,7 +80,8 @@ public class BurningTower implements ApplicationListener, GameContext {
 		 */
 		DragAndDrop dragAndDrop = new DragAndDrop();
 		stage = new Stage();
-
+		stage.setCamera(cam);
+		
 		stage.addActor(background);
 
 		for (int i = 0; i < nOfFireImages; i++)
@@ -107,12 +117,16 @@ public class BurningTower implements ApplicationListener, GameContext {
 				public void touchDragged(InputEvent event, float x, float y,
 						int pointer) {
 					object.setOrigin(Gdx.input.getX(), Gdx.input.getY());
-					object.setPosition(object.getX() - object.getWidth() / 2 + x, object.getY() - object.getHeight() / 2 + y);
+					object.setPosition(object.getX() - object.getWidth() / 2
+							+ x, object.getY() - object.getHeight() / 2 + y);
 				}
 			});
 			stage.addActor(object);
 			gameObjects.add(object);
 		}
+		
+		FireActor fireactor = new FireActor();
+		stage.addActor(fireactor);
 
 		inputMultiplexer = new InputMultiplexer(stage);
 		// inputMultiplexer.addProcessor(1, stage);
@@ -122,11 +136,11 @@ public class BurningTower implements ApplicationListener, GameContext {
 
 		burner.setFire(130, 10);
 
-		ScheduledExecutorService worker = Executors
-				.newSingleThreadScheduledExecutor();
+		//ScheduledExecutorService worker = Executors
+		//		.newSingleThreadScheduledExecutor();
 
-		worker.schedule(burningThread, 10, TimeUnit.SECONDS);
-		// burningThread.start();
+		//worker.schedule(burningThread, 10, TimeUnit.SECONDS);
+		burningThread.start();
 	}
 
 	@Override
@@ -145,19 +159,34 @@ public class BurningTower implements ApplicationListener, GameContext {
 	public void render() {
 		Gdx.gl.glClearColor(0, 0, 0.2f, 1);
 		Gdx.gl.glClear(GL10.GL_COLOR_BUFFER_BIT);
+		Gdx.gl.glViewport(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 
 		batch.begin();
 
 		stage.act(Gdx.graphics.getDeltaTime());
 		stage.draw();
-		Table.drawDebug(stage);
+		batch.end();
+		
+		batch.begin();
+		
 
 		batch.end();
 	}
 
 	@Override
 	public void resize(int width, int height) {
-		stage.setViewport(width, height, true);
+		cam.viewportHeight = height; //set the viewport
+        cam.viewportWidth = width; 
+        if (VIRTUAL_WIDTH / cam.viewportWidth < VIRTUAL_HEIGHT
+                / cam.viewportHeight) {
+//sett the right zoom direct
+            cam.zoom = VIRTUAL_HEIGHT / cam.viewportHeight;
+        } else {
+//sett the right zoom direct
+            cam.zoom = VIRTUAL_WIDTH / cam.viewportWidth;
+        }
+        cam.position.set(cam.zoom * cam.viewportWidth / 2.0f, cam.zoom * cam.viewportHeight / 2.0f, 0);
+        cam.update(); 
 	}
 
 	@Override

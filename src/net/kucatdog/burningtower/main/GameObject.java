@@ -30,10 +30,10 @@ public class GameObject extends Image {
 	public int flameSpread = 0;
 	public boolean isBurning = false;
 	public boolean isBurnt = false;
-	
+
 	private int prevFlameSpread = 0;
-	
-	private ArrayList<Point> firepts = new ArrayList<Point>();
+
+	public ArrayList<Point> firepts = new ArrayList<Point>();
 
 	public GameObject() {
 		//
@@ -43,12 +43,12 @@ public class GameObject extends Image {
 	public void draw(Batch batch, float alpha) {
 		super.draw(batch, alpha);
 
-		if (this.isBurning) {
-			Texture fireToDraw = BurningTower.fire[(int) (TimeUtils.millis() / 500 % BurningTower.nOfFireImages)];
-
-			for(Point p : firepts)
-				batch.draw(fireToDraw, p.x, p.y);
-		}
+		/*
+		 * if (this.isBurning) { Texture fireToDraw = BurningTower.fire[(int)
+		 * (TimeUtils.millis() / 500 % BurningTower.nOfFireImages)];
+		 * 
+		 * for(Point p : firepts) batch.draw(fireToDraw, p.x, p.y); }
+		 */
 	}
 
 	@Override
@@ -56,13 +56,12 @@ public class GameObject extends Image {
 		if (this.isBurnt)
 			this.setDrawable(ashDrawable);
 
-		if (this.isBurning && this.flameSpread / 20 != prevFlameSpread)
-		{
+		if (this.isBurning && this.flameSpread / 20 != prevFlameSpread) {
 			prevFlameSpread = this.flameSpread / 20;
 			Point p = new Point();
-			p.x = (int) (this.getX() + Math.random()*this.getWidth());
-			p.y = (int) (this.getY() + Math.random()*this.getHeight());
-			
+			p.x = (int) (this.getX() + Math.random() * this.getWidth());
+			p.y = (int) (this.getY() + Math.random() * this.getHeight());
+
 			firepts.add(p);
 		}
 	}
