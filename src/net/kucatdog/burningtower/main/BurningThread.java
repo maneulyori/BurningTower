@@ -52,7 +52,7 @@ public class BurningThread implements Runnable {
 					Array<GameObject> tmpObjList = new Array<GameObject>(gameObjs);
 					
 					for (GameObject obj : gameObjs) {
-						if (obj.isBurnt) // Skip burnt object.
+						if (obj.isBurnt) // Skip burnt object.ㅇ
 							continue;
 
 						if (obj.isBurning) {

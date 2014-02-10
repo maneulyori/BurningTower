@@ -35,20 +35,9 @@ public class GameObject extends Image {
 
 	public ArrayList<Point> firepts = new ArrayList<Point>();
 
-	public GameObject() {
-		//
-	}
-
 	@Override
 	public void draw(Batch batch, float alpha) {
 		super.draw(batch, alpha);
-
-		/*
-		 * if (this.isBurning) { Texture fireToDraw = BurningTower.fire[(int)
-		 * (TimeUtils.millis() / 500 % BurningTower.nOfFireImages)];
-		 * 
-		 * for(Point p : firepts) batch.draw(fireToDraw, p.x, p.y); }
-		 */
 	}
 
 	@Override
