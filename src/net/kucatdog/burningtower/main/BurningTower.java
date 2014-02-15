@@ -37,6 +37,9 @@ public class BurningTower implements ApplicationListener, GameContext {
 	private GameObject background;
 	public static final int nOfFireImages = 2;
 	public static Texture[] fire = new Texture[nOfFireImages];
+
+	public static boolean dragLock = false;
+
 	private Stage stage;
 
 	private Music bgm;
@@ -93,16 +96,15 @@ public class BurningTower implements ApplicationListener, GameContext {
 
 		while (levelIterator.hasNext()) {
 			JsonValue objects = levelIterator.next();
-			
+
 			GameObject object_tmp;
-			
-			if(objects.get("type").asString().equals("wall")) {
+
+			if (objects.get("type").asString().equals("wall")) {
 				object_tmp = new WallObject();
-			}
-			else {
+			} else {
 				object_tmp = new GameObject();
 			}
-			
+
 			final GameObject object = object_tmp;
 
 			//
@@ -113,12 +115,11 @@ public class BurningTower implements ApplicationListener, GameContext {
 			object.setX(objects.get("locationX").asFloat());
 			object.setY(objects.get("locationY").asFloat());
 			object.flameCnt = objects.get("flammable").asInt();
-			
-			if(objects.get("width") != null)
+
+			if (objects.get("width") != null)
 				object.setWidth(objects.get("width").asInt());
-			if(objects.get("height") != null)
+			if (objects.get("height") != null)
 				object.setHeight(objects.get("height").asInt());
-			
 
 			if (!objects.get("type").asString().equals("wall"))
 				object.addListener(new DragListener() {
@@ -132,7 +133,8 @@ public class BurningTower implements ApplicationListener, GameContext {
 					@Override
 					public void touchDragged(InputEvent event, float x,
 							float y, int pointer) {
-						object.setOrigin(Gdx.input.getX(), Gdx.input.getY());
+						if (!BurningTower.dragLock)
+							object.setOrigin(Gdx.input.getX(), Gdx.input.getY());
 						object.setPosition(object.getX() - object.getWidth()
 								/ 2 + x, object.getY() - object.getHeight() / 2
 								+ y);

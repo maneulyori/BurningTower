@@ -36,6 +36,7 @@ public class BurningThread implements Runnable {
 
 	@Override
 	public void run() {
+		BurningTower.dragLock = true;
 		while (true) {
 			try {
 				Thread.sleep(burningTick);
