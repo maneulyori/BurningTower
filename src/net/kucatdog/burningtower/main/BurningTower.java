@@ -53,7 +53,7 @@ public class BurningTower implements ApplicationListener, GameContext {
 	private Thread burningThread = new Thread(burner);
 
 	private InputMultiplexer inputMultiplexer;
-	
+
 	private OrthographicCamera cam;
 
 	public BurningTower() {
@@ -74,14 +74,11 @@ public class BurningTower implements ApplicationListener, GameContext {
 		background = new GameObject();
 		background.setObjType("building", false);
 		background.setPosition(0, 0);
-		/*
-		 * for (String str : objectStr) objTextures.put(str, new
-		 * Texture(Gdx.files.internal("data/image/" + str + ".png")));
-		 */
+
 		DragAndDrop dragAndDrop = new DragAndDrop();
 		stage = new Stage();
 		stage.setCamera(cam);
-		
+
 		stage.addActor(background);
 
 		for (int i = 0; i < nOfFireImages; i++)
@@ -96,7 +93,19 @@ public class BurningTower implements ApplicationListener, GameContext {
 
 		while (levelIterator.hasNext()) {
 			JsonValue objects = levelIterator.next();
-			final GameObject object = new GameObject();
+			
+			GameObject object_tmp;
+			
+			if(objects.get("type").asString().equals("wall")) {
+				object_tmp = new WallObject();
+			}
+			else {
+				object_tmp = new GameObject();
+			}
+			
+			final GameObject object = object_tmp;
+
+			//
 
 			object.setObjType(objects.get("type").asString(),
 					objects.get("leaveRuin").asBoolean());
@@ -104,27 +113,36 @@ public class BurningTower implements ApplicationListener, GameContext {
 			object.setX(objects.get("locationX").asFloat());
 			object.setY(objects.get("locationY").asFloat());
 			object.flameCnt = objects.get("flammable").asInt();
+			
+			if(objects.get("width") != null)
+				object.setWidth(objects.get("width").asInt());
+			if(objects.get("height") != null)
+				object.setHeight(objects.get("height").asInt());
+			
 
-			object.addListener(new DragListener() {
-				@Override
-				public boolean touchDown(InputEvent event, float x, float y,
-						int pointer, int button) {
-					System.out.println("CLICK");
-					return true;
-				}
+			if (!objects.get("type").asString().equals("wall"))
+				object.addListener(new DragListener() {
+					@Override
+					public boolean touchDown(InputEvent event, float x,
+							float y, int pointer, int button) {
+						System.out.println("CLICK");
+						return true;
+					}
 
-				@Override
-				public void touchDragged(InputEvent event, float x, float y,
-						int pointer) {
-					object.setOrigin(Gdx.input.getX(), Gdx.input.getY());
-					object.setPosition(object.getX() - object.getWidth() / 2
-							+ x, object.getY() - object.getHeight() / 2 + y);
-				}
-			});
+					@Override
+					public void touchDragged(InputEvent event, float x,
+							float y, int pointer) {
+						object.setOrigin(Gdx.input.getX(), Gdx.input.getY());
+						object.setPosition(object.getX() - object.getWidth()
+								/ 2 + x, object.getY() - object.getHeight() / 2
+								+ y);
+					}
+				});
+
 			stage.addActor(object);
 			gameObjects.add(object);
 		}
-		
+
 		FireActor fireactor = new FireActor();
 		stage.addActor(fireactor);
 
@@ -136,10 +154,10 @@ public class BurningTower implements ApplicationListener, GameContext {
 
 		burner.setFire(130, 10);
 
-		//ScheduledExecutorService worker = Executors
-		//		.newSingleThreadScheduledExecutor();
+		// ScheduledExecutorService worker = Executors
+		// .newSingleThreadScheduledExecutor();
 
-		//worker.schedule(burningThread, 10, TimeUnit.SECONDS);
+		// worker.schedule(burningThread, 10, TimeUnit.SECONDS);
 		burningThread.start();
 	}
 
@@ -159,34 +177,35 @@ public class BurningTower implements ApplicationListener, GameContext {
 	public void render() {
 		Gdx.gl.glClearColor(0, 0, 0.2f, 1);
 		Gdx.gl.glClear(GL10.GL_COLOR_BUFFER_BIT);
-		Gdx.gl.glViewport(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+		Gdx.gl.glViewport(0, 0, Gdx.graphics.getWidth(),
+				Gdx.graphics.getHeight());
 
 		batch.begin();
 
 		stage.act(Gdx.graphics.getDeltaTime());
 		stage.draw();
 		batch.end();
-		
+
 		batch.begin();
-		
 
 		batch.end();
 	}
 
 	@Override
 	public void resize(int width, int height) {
-		cam.viewportHeight = height; //set the viewport
-        cam.viewportWidth = width; 
-        if (VIRTUAL_WIDTH / cam.viewportWidth < VIRTUAL_HEIGHT
-                / cam.viewportHeight) {
-//sett the right zoom direct
-            cam.zoom = VIRTUAL_HEIGHT / cam.viewportHeight;
-        } else {
-//sett the right zoom direct
-            cam.zoom = VIRTUAL_WIDTH / cam.viewportWidth;
-        }
-        cam.position.set(cam.zoom * cam.viewportWidth / 2.0f, cam.zoom * cam.viewportHeight / 2.0f, 0);
-        cam.update(); 
+		cam.viewportHeight = height; // set the viewport
+		cam.viewportWidth = width;
+		if (VIRTUAL_WIDTH / cam.viewportWidth < VIRTUAL_HEIGHT
+				/ cam.viewportHeight) {
+			// sett the right zoom direct
+			cam.zoom = VIRTUAL_HEIGHT / cam.viewportHeight;
+		} else {
+			// sett the right zoom direct
+			cam.zoom = VIRTUAL_WIDTH / cam.viewportWidth;
+		}
+		cam.position.set(cam.zoom * cam.viewportWidth / 2.0f, cam.zoom
+				* cam.viewportHeight / 2.0f, 0);
+		cam.update();
 	}
 
 	@Override
