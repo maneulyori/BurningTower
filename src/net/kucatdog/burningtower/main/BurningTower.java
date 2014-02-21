@@ -198,6 +198,13 @@ public class BurningTower implements ApplicationListener, GameContext {
 
 		FireActor fireactor = new FireActor();
 		stage.addActor(fireactor);
+		
+		//Pyro!
+		burner.setFire(130, 10);
+		final PyroActor pyro = new PyroActor(burningThread);
+		
+		pyro.setPosition(700, 10);
+		stage.addActor(pyro);
 
 		final Image fireButton = new Image();
 		fireButton
@@ -216,7 +223,7 @@ public class BurningTower implements ApplicationListener, GameContext {
 					int pointer, int button) {
 				System.out.println("FIRE START");
 
-				burningThread.start();
+				pyro.burnIt();
 
 				return true;
 			}
@@ -230,7 +237,6 @@ public class BurningTower implements ApplicationListener, GameContext {
 
 		/**** TEST CODE ****/
 
-		burner.setFire(130, 10);
 
 		// ScheduledExecutorService worker = Executors
 		// .newSingleThreadScheduledExecutor();
