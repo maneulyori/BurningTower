@@ -1,42 +1,36 @@
 package net.kucatdog.burningtower.main;
 
-import java.util.Hashtable;
 import java.util.Iterator;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.files.FileHandle;
-import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.GL10;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
-import com.badlogic.gdx.scenes.scene2d.ui.Table;
-import com.badlogic.gdx.scenes.scene2d.utils.DragAndDrop;
+import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.utils.DragListener;
+import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.JsonReader;
 import com.badlogic.gdx.utils.JsonValue;
-import com.badlogic.gdx.utils.Scaling;
-import com.badlogic.gdx.utils.TimeUtils;
 
 public class BurningTower implements ApplicationListener, GameContext {
 
 	private final int VIRTUAL_WIDTH = 768;
 	private final int VIRTUAL_HEIGHT = 1280;
-	private GameObject background;
+	// private GameObject background;
 	public static final int nOfFireImages = 2;
 	public static Texture[] fire = new Texture[nOfFireImages];
+
+	public final int GRIDPIXELSIZE = 40;
+	// TODO: Read it from config file
 
 	public static boolean dragLock = false;
 
@@ -48,7 +42,6 @@ public class BurningTower implements ApplicationListener, GameContext {
 
 	public static Array<GameObject> gameObjects = new Array<GameObject>();
 	private SpriteBatch batch;
-	private Sprite backgroundSprite;
 	private FileHandle levelFile;
 	private JsonValue levelData;
 
@@ -74,14 +67,20 @@ public class BurningTower implements ApplicationListener, GameContext {
 		System.out.println(levelData);
 		batch = new SpriteBatch();
 
-		background = new GameObject();
-		background.setObjType("building", false);
-		background.setPosition(0, 0);
+		// TODO: Make background as obj.
+		// background = new GameObject();
+		// background.setObjType("building", false);
+		// background.setPosition(0, 0);
 
-		DragAndDrop dragAndDrop = new DragAndDrop();
 		stage = new Stage();
 		stage.setCamera(cam);
 
+		StoreyObject background = new StoreyObject();
+		background.setBounds(60, 10, 600, 400);
+		stage.addActor(background);
+
+		background = new StoreyObject();
+		background.setBounds(60, 410, 600, 400);
 		stage.addActor(background);
 
 		for (int i = 0; i < nOfFireImages; i++)
@@ -97,17 +96,7 @@ public class BurningTower implements ApplicationListener, GameContext {
 		while (levelIterator.hasNext()) {
 			JsonValue objects = levelIterator.next();
 
-			GameObject object_tmp;
-
-			if (objects.get("type").asString().equals("wall")) {
-				object_tmp = new WallObject();
-			} else {
-				object_tmp = new GameObject();
-			}
-
-			final GameObject object = object_tmp;
-
-			//
+			final GameObject object = new GameObject();
 
 			object.setObjType(objects.get("type").asString(),
 					objects.get("leaveRuin").asBoolean());
@@ -121,25 +110,87 @@ public class BurningTower implements ApplicationListener, GameContext {
 			if (objects.get("height") != null)
 				object.setHeight(objects.get("height").asInt());
 
-			if (!objects.get("type").asString().equals("wall"))
+			if (objects.get("isMovable") == null
+					|| objects.get("isMovable").asBoolean()) {
 				object.addListener(new DragListener() {
+					float deltax;
+					float deltay;
+					float firstx;
+					float firsty;
+					float firstgrep_x;
+					float firstgrep_y;
+					float original_x;
+					float original_y;
+
 					@Override
 					public boolean touchDown(InputEvent event, float x,
 							float y, int pointer, int button) {
 						System.out.println("CLICK");
+
+						deltax = 0;
+						deltay = 0;
+						firstx = object.getX();
+						firsty = object.getY();
+
+						firstgrep_x = x;
+						firstgrep_y = y;
+
+						original_x = firstx;
+						original_y = firsty;
+
 						return true;
 					}
 
 					@Override
 					public void touchDragged(InputEvent event, float x,
 							float y, int pointer) {
-						if (!BurningTower.dragLock)
+						if (!BurningTower.dragLock) {
 							object.setOrigin(Gdx.input.getX(), Gdx.input.getY());
-						object.setPosition(object.getX() - object.getWidth()
-								/ 2 + x, object.getY() - object.getHeight() / 2
-								+ y);
+
+							deltax = x - firstgrep_x;
+							deltay = y - firstgrep_y;
+
+							if (Math.abs(deltax) >= 40) {
+								object.setX(firstx + (int) deltax
+										/ GRIDPIXELSIZE * GRIDPIXELSIZE);
+
+								firstx = object.getX();
+							}
+
+							if (Math.abs(deltay) >= 40) {
+
+								object.setY(firsty + (int) deltay
+										/ GRIDPIXELSIZE * GRIDPIXELSIZE);
+
+								firsty = object.getY();
+							}
+						}
+					}
+
+					@Override
+					public void touchUp(InputEvent event, float x, float y,
+							int pointer, int button) {
+						// Check object collapses.
+
+						for (GameObject obj : gameObjects) {
+							
+							if(obj == object) continue;
+							
+							if (object.getX() + object.getWidth() > obj.getX()
+									&& object.getX() < obj.getX()
+											+ obj.getWidth()
+									&& object.getY() + object.getHeight() > obj
+											.getY()
+									&& object.getY() < obj.getY()
+											+ obj.getHeight()) {
+								System.out.println("COLLIDE! with "
+										+ obj.objectType);
+								object.setPosition(original_x, original_y);
+							}
+						}
 					}
 				});
+			}
 
 			stage.addActor(object);
 			gameObjects.add(object);
@@ -147,6 +198,31 @@ public class BurningTower implements ApplicationListener, GameContext {
 
 		FireActor fireactor = new FireActor();
 		stage.addActor(fireactor);
+
+		final Image fireButton = new Image();
+		fireButton
+				.setDrawable(new TextureRegionDrawable(new TextureRegion(
+						new Texture(Gdx.files
+								.internal("data/image/fire_button.png")))));
+		fireButton.setX(0);
+		fireButton.setY(0);
+
+		fireButton.setWidth(20);
+		fireButton.setHeight(20);
+
+		fireButton.addListener(new DragListener() {
+			@Override
+			public boolean touchDown(InputEvent event, float x, float y,
+					int pointer, int button) {
+				System.out.println("FIRE START");
+
+				burningThread.start();
+
+				return true;
+			}
+		});
+
+		stage.addActor(fireButton);
 
 		inputMultiplexer = new InputMultiplexer(stage);
 		// inputMultiplexer.addProcessor(1, stage);
@@ -160,7 +236,7 @@ public class BurningTower implements ApplicationListener, GameContext {
 		// .newSingleThreadScheduledExecutor();
 
 		// worker.schedule(burningThread, 10, TimeUnit.SECONDS);
-		burningThread.start();
+		// burningThread.start();
 	}
 
 	@Override
@@ -186,10 +262,6 @@ public class BurningTower implements ApplicationListener, GameContext {
 
 		stage.act(Gdx.graphics.getDeltaTime());
 		stage.draw();
-		batch.end();
-
-		batch.begin();
-
 		batch.end();
 	}
 

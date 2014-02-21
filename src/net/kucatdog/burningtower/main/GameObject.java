@@ -1,23 +1,15 @@
 package net.kucatdog.burningtower.main;
 
 import java.util.ArrayList;
-import java.util.Hashtable;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
-import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
-import com.badlogic.gdx.utils.Array;
-import com.badlogic.gdx.utils.TimeUtils;
 
 public class GameObject extends Image {
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 5752514252157397512L;
 	public static float range;
 
 	public String objectType;
