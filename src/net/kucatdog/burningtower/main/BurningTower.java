@@ -25,7 +25,7 @@ import com.badlogic.gdx.utils.JsonValue;
 public class BurningTower implements ApplicationListener, GameContext {
 
 	private final BurningTower self = this;
-	
+
 	private final int VIRTUAL_WIDTH = 768;
 	private final int VIRTUAL_HEIGHT = 1280;
 	// private GameObject background;
@@ -42,26 +42,23 @@ public class BurningTower implements ApplicationListener, GameContext {
 	private Music bgm;
 
 	private int levelCnt;
-	
+
 	private BitmapFont scoreFont;
 	private BitmapFont timerFont;
-	
+
 	private CountdownTimer fireTimer;
 
 	public static Array<GameObject> gameObjects = new Array<GameObject>();
 	private Array<StoreyObject> storeys = new Array<StoreyObject>();
-	
+
 	private SpriteBatch batch;
 	private FileHandle levelFile;
 	private JsonValue levelData;
 
-	private BurningThread burner = new BurningThread(gameObjects, this);
-	private Thread burningThread = new Thread(burner);
-
 	private InputMultiplexer inputMultiplexer;
 
 	private OrthographicCamera cam;
-	
+
 	private PyroActor pyro;
 
 	public BurningTower() {
@@ -78,12 +75,12 @@ public class BurningTower implements ApplicationListener, GameContext {
 
 		System.out.println(levelData);
 		batch = new SpriteBatch();
-		
+
 		scoreFont = new BitmapFont();
 		timerFont = new BitmapFont();
 
-		//TODO: Add roof
-		
+		// TODO: Add roof
+
 		stage = new Stage();
 		stage.setCamera(cam);
 
@@ -135,16 +132,16 @@ public class BurningTower implements ApplicationListener, GameContext {
 					float firstgrep_y;
 					float original_x;
 					float original_y;
-					
+
 					StoreyObject thisStorey = null;
 
 					@Override
 					public boolean touchDown(InputEvent event, float x,
 							float y, int pointer, int button) {
 						System.out.println("CLICK");
-						
-						for(StoreyObject obj : storeys) {
-							if(object.getX() + object.getWidth() > obj.getX()
+
+						for (StoreyObject obj : storeys) {
+							if (object.getX() + object.getWidth() > obj.getX()
 									&& object.getX() < obj.getX()
 											+ obj.getWidth()
 									&& object.getY() + object.getHeight() > obj
@@ -156,9 +153,13 @@ public class BurningTower implements ApplicationListener, GameContext {
 								break;
 							}
 						}
-						
-						object.setX((int)(object.getX() - thisStorey.getX()) / GRIDPIXELSIZE * GRIDPIXELSIZE + thisStorey.getX());
-						object.setY((int)(object.getY() - thisStorey.getY()) / GRIDPIXELSIZE * GRIDPIXELSIZE + thisStorey.getY());
+
+						object.setX((int) (object.getX() - thisStorey.getX())
+								/ GRIDPIXELSIZE * GRIDPIXELSIZE
+								+ thisStorey.getX());
+						object.setY((int) (object.getY() - thisStorey.getY())
+								/ GRIDPIXELSIZE * GRIDPIXELSIZE
+								+ thisStorey.getY());
 
 						deltax = 0;
 						deltay = 0;
@@ -177,7 +178,7 @@ public class BurningTower implements ApplicationListener, GameContext {
 					@Override
 					public void touchDragged(InputEvent event, float x,
 							float y, int pointer) {
-						
+
 						if (!BurningTower.dragLock) {
 							object.setOrigin(Gdx.input.getX(), Gdx.input.getY());
 
@@ -207,9 +208,10 @@ public class BurningTower implements ApplicationListener, GameContext {
 						// Check object collapses.
 
 						for (GameObject obj : gameObjects) {
-							
-							if(obj == object) continue;
-							
+
+							if (obj == object)
+								continue;
+
 							if (object.getX() + object.getWidth() > obj.getX()
 									&& object.getX() < obj.getX()
 											+ obj.getWidth()
@@ -222,14 +224,14 @@ public class BurningTower implements ApplicationListener, GameContext {
 								object.setPosition(original_x, original_y);
 							}
 						}
-						
-						if (!(object.getX() + object.getWidth() > thisStorey.getX()
+
+						if (!(object.getX() + object.getWidth() > thisStorey
+								.getX()
 								&& object.getX() < thisStorey.getX()
 										+ thisStorey.getWidth()
 								&& object.getY() + object.getHeight() > thisStorey
-										.getY()
-								&& object.getY() < thisStorey.getY()
-										+ thisStorey.getHeight())) {
+										.getY() && object.getY() < thisStorey
+								.getY() + thisStorey.getHeight())) {
 							System.out.println("You cannot leave storey!");
 							object.setPosition(original_x, original_y);
 						}
@@ -243,11 +245,12 @@ public class BurningTower implements ApplicationListener, GameContext {
 
 		FireActor fireactor = new FireActor();
 		stage.addActor(fireactor);
-		
-		//Pyro!
-		burner.setFire(130, 10);
-		pyro = new PyroActor(burningThread);
-		
+
+		// Pyro!
+		// burner.setFire(130, 10);
+
+		pyro = new PyroActor(this);
+
 		pyro.setPosition(700, 10);
 		stage.addActor(pyro);
 
@@ -275,11 +278,11 @@ public class BurningTower implements ApplicationListener, GameContext {
 		});
 
 		stage.addActor(fireButton);
-		
+
 		fireTimer = new CountdownTimer(this);
-		
+
 		Thread timerThread = new Thread(fireTimer);
-		
+
 		timerThread.start();
 
 		inputMultiplexer = new InputMultiplexer(stage);
@@ -305,18 +308,38 @@ public class BurningTower implements ApplicationListener, GameContext {
 		Gdx.gl.glViewport(0, 0, Gdx.graphics.getWidth(),
 				Gdx.graphics.getHeight());
 
+		int notburn = 0;
+		boolean isBurning = false;
+
 		batch.begin();
-		
+
 		stage.act(Gdx.graphics.getDeltaTime());
 		stage.draw();
-		
+
 		batch.end();
-		
+
+		for (GameObject obj : gameObjects) {
+			if (!(obj.isBurning || obj.isBurnt)) {
+				notburn++;
+			}
+			if (obj.isBurning) {
+				isBurning = true;
+			}
+		}
+
+		if ((!isBurning) && dragLock)
+			this.stopBGM();
+
 		batch.begin();
-		
-		timerFont.draw(batch, fireTimer.getTimerStr(), Gdx.graphics.getWidth() / 2 - 50 , Gdx.graphics.getHeight() - 10);
-		
-		
+
+		timerFont
+				.draw(batch, fireTimer.getTimerStr(),
+						Gdx.graphics.getWidth() / 2 - 50,
+						Gdx.graphics.getHeight() - 10);
+		scoreFont.draw(batch, "Burnt " + 100 * (gameObjects.size - notburn)
+				/ gameObjects.size + "%", Gdx.graphics.getWidth() / 2 - 50,
+				Gdx.graphics.getHeight() - 25);
+
 		batch.end();
 	}
 
@@ -357,9 +380,10 @@ public class BurningTower implements ApplicationListener, GameContext {
 	public boolean isBGMPlaying() {
 		return bgm.isPlaying();
 	}
-	
+
 	@Override
 	public void startFire() {
 		pyro.burnIt();
+		fireTimer.setTime(0);
 	}
 }

@@ -11,17 +11,16 @@ public class PyroActor extends Image {
 	Texture texture;
 	boolean toggleDirection = false;
 	boolean burnit = false;
-	Thread burningThread;
+	GameContext context;
 
-	PyroActor(Thread burningThread) {
+	PyroActor(GameContext context) {
 		texture = new Texture(Gdx.files.internal("data/image/pyro.png"));
 
 		this.setDrawable(new TextureRegionDrawable(new TextureRegion(texture)));
 		
 		this.setWidth(texture.getWidth());
 		this.setHeight(texture.getHeight());
-		
-		this.burningThread = burningThread;
+		this.context = context;
 	}
 
 	@Override
@@ -36,14 +35,24 @@ public class PyroActor extends Image {
 			return;
 
 		if (!toggleDirection)
-			this.setX(this.getX() - deltaTime * 500);
+			this.setX(this.getX() - deltaTime * 400);
 		else if (this.getX() < 10000)
-			this.setX(this.getX() + deltaTime * 500);
+			this.setX(this.getX() + deltaTime * 400);
 
 		if (this.getX() <= 70) {
 			// TODO: Better animation for pyro
 			toggleDirection = true;
-			burningThread.start();
+			
+			GameObject fireobj = new GameObject();
+			fireobj.setPosition(130, 10);
+			
+			for (GameObject obj : BurningTower.gameObjects) {
+				if(obj.isItNear(fireobj)) {
+					obj.isBurning = true;
+				}
+			}
+			BurningTower.dragLock = true;
+			context.playBGM();
 		}
 	}
 

@@ -20,8 +20,15 @@ public class CountdownTimer implements Runnable {
 		}
 		context.startFire();
 	}
-	
+
 	public String getTimerStr() {
+		if (timer <= 0)
+			return "TIME OVER";
+
 		return "TIME LEFT: " + timer + "sec.";
+	}
+
+	public void setTime(int timer) {
+		this.timer = timer;
 	}
 }

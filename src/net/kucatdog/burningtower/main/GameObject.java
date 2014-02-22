@@ -8,6 +8,7 @@ import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
+import com.badlogic.gdx.utils.Array;
 
 public class GameObject extends Image {
 	public static float range;
@@ -25,6 +26,8 @@ public class GameObject extends Image {
 
 	private int prevFlameSpread = 0;
 
+	float deltaTime = 0;
+
 	public ArrayList<Point> firepts = new ArrayList<Point>();
 
 	@Override
@@ -33,7 +36,10 @@ public class GameObject extends Image {
 	}
 
 	@Override
-	public void act(float deltaTime) {
+	public void act(float delta) {
+
+		deltaTime += delta;
+
 		if (this.isBurnt)
 			this.setDrawable(ashDrawable);
 
@@ -44,6 +50,34 @@ public class GameObject extends Image {
 			p.y = (int) (this.getY() + Math.random() * this.getHeight());
 
 			firepts.add(p);
+		}
+
+		if (deltaTime > 50.0 / 1000.0) {
+			deltaTime = 0;
+
+			if (this.isBurning) {
+				this.resist--;
+				this.flameSpread++;
+
+				for (GameObject obj : BurningTower.gameObjects) {
+					if (obj == this)
+						continue;
+
+					if (obj.isBurnt) // Skip burnt object.
+						continue;
+
+					if (obj.isItNear(this) && obj.flameCnt > 0) {
+						obj.flameCnt--;
+					}
+				}
+				
+				if (this.flameCnt <= 0)
+					this.isBurning = true;
+				if (this.resist <= 0) {
+					this.isBurning = false;
+					this.isBurnt = true;
+				}
+			}
 		}
 	}
 
