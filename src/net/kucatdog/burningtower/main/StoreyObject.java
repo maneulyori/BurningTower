@@ -28,7 +28,7 @@ public class StoreyObject extends Actor {
 
 	@Override
 	public void act(float deltaTime) {
-		// TODO: Act
+		// TODO: Burn part of floor when burning object is just below celing
 	}
 
 	@Override

@@ -41,7 +41,6 @@ public class BurningThread implements Runnable {
 			try {
 				Thread.sleep(burningTick);
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 

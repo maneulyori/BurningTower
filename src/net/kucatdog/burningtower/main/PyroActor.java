@@ -36,9 +36,9 @@ public class PyroActor extends Image {
 			return;
 
 		if (!toggleDirection)
-			this.setX(this.getX() - deltaTime * 1000);
+			this.setX(this.getX() - deltaTime * 500);
 		else if (this.getX() < 10000)
-			this.setX(this.getX() + deltaTime * 1000);
+			this.setX(this.getX() + deltaTime * 500);
 
 		if (this.getX() <= 70) {
 			// TODO: Better animation for pyro
