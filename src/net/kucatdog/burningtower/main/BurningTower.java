@@ -66,7 +66,7 @@ public class BurningTower implements ApplicationListener, GameContext {
 
 	@Override
 	public void create() {
-		GameObject.range = 50;
+		GameObject.range = 80;
 		Texture.setEnforcePotImages(false);
 		cam = new OrthographicCamera(VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
 
@@ -209,7 +209,7 @@ public class BurningTower implements ApplicationListener, GameContext {
 
 						for (GameObject obj : gameObjects) {
 
-							if (obj == object)
+							if (obj.equals(object))
 								continue;
 
 							if (object.getX() + object.getWidth() > obj.getX()
@@ -252,6 +252,8 @@ public class BurningTower implements ApplicationListener, GameContext {
 		pyro = new PyroActor(this);
 
 		pyro.setPosition(700, 10);
+		pyro.setFirePt(130, 10);
+		pyro.setScale((float) 1.5);
 		stage.addActor(pyro);
 
 		final Image fireButton = new Image();
@@ -332,13 +334,17 @@ public class BurningTower implements ApplicationListener, GameContext {
 
 		batch.begin();
 
-		timerFont
-				.draw(batch, fireTimer.getTimerStr(),
-						Gdx.graphics.getWidth() / 2 - 50,
-						Gdx.graphics.getHeight() - 10);
+		float scale = 1 / cam.zoom * 2;
+
+		timerFont.setScale(scale);
+		scoreFont.setScale(scale);
+
+		timerFont.draw(batch, fireTimer.getTimerStr(),
+				Gdx.graphics.getWidth() / 2 - 50, Gdx.graphics.getHeight() - 10
+						* scale);
 		scoreFont.draw(batch, "Burnt " + 100 * (gameObjects.size - notburn)
 				/ gameObjects.size + "%", Gdx.graphics.getWidth() / 2 - 50,
-				Gdx.graphics.getHeight() - 25);
+				Gdx.graphics.getHeight() - 25 * scale);
 
 		batch.end();
 	}

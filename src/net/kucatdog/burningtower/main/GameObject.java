@@ -21,6 +21,9 @@ public class GameObject extends Image {
 	public int flameCnt;
 
 	public int flameSpread = 0;
+	public boolean objectPlaceable = false;
+	public PlaceLocation placeLocation;
+
 	public boolean isBurning = false;
 	public boolean isBurnt = false;
 
@@ -70,13 +73,13 @@ public class GameObject extends Image {
 						obj.flameCnt--;
 					}
 				}
-				
-				if (this.flameCnt <= 0)
-					this.isBurning = true;
-				if (this.resist <= 0) {
-					this.isBurning = false;
-					this.isBurnt = true;
-				}
+			}
+
+			if (this.flameCnt <= 0)
+				this.isBurning = true;
+			if (this.resist <= 0) {
+				this.isBurning = false;
+				this.isBurnt = true;
 			}
 		}
 	}
@@ -110,8 +113,8 @@ public class GameObject extends Image {
 		float width = obj.getWidth();
 		float height = obj.getHeight();
 
-		if (x - range < this.getX() && x + range + width > this.getX()
-				&& y - range < this.getY() && y + range + height > this.getY())
+		if ((x + width + range > this.getX() && x - range < this.getX()
+				&& y + height + range > this.getY() && y - range < this.getY()))
 			return true;
 
 		return false;
