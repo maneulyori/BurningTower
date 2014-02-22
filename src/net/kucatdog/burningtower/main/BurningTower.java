@@ -10,9 +10,11 @@ import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.GL10;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
@@ -21,6 +23,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.JsonReader;
 import com.badlogic.gdx.utils.JsonValue;
+import com.badlogic.gdx.utils.TimeUtils;
 
 public class BurningTower implements ApplicationListener, GameContext {
 
@@ -79,8 +82,6 @@ public class BurningTower implements ApplicationListener, GameContext {
 		scoreFont = new BitmapFont();
 		timerFont = new BitmapFont();
 
-		// TODO: Add roof
-
 		stage = new Stage();
 		stage.setCamera(cam);
 
@@ -93,6 +94,24 @@ public class BurningTower implements ApplicationListener, GameContext {
 		storey.setBounds(60, 310, 600, 300);
 		stage.addActor(storey);
 		storeys.add(storey);
+		
+		Actor roof = new Actor() {
+			Texture texture = new Texture(Gdx.files.internal("data/image/roof.png"));
+			
+			@Override
+			public void draw(Batch batch, float alpha) {
+				super.draw(batch, alpha);
+
+				batch.draw(texture, this.getX(), this.getY(), this.getWidth(), this.getHeight());
+			}
+
+			@Override
+			public void act(float deltaTime) {
+			}
+		};
+		
+		roof.setBounds(40, 610, 640, 100);
+		stage.addActor(roof);
 
 		for (int i = 0; i < nOfFireImages; i++)
 			fire[i] = new Texture(Gdx.files.internal("data/image/fire"
