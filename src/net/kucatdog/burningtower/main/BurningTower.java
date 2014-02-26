@@ -91,9 +91,8 @@ public class BurningTower implements Screen {
 					+ (i + 1) + ".png"));
 
 		bgm = Gdx.audio.newMusic(Gdx.files.internal("data/audio/fire.ogg"));
-
+		
 		fireTimer = new CountdownTimer(this);
-		timerThread = new Thread(fireTimer);
 
 		inputMultiplexer = new InputMultiplexer(stage);
 		// inputMultiplexer.addProcessor(1, stage);
@@ -324,7 +323,20 @@ public class BurningTower implements Screen {
 
 		stage.addActor(fireButton);
 
+		while(timerThread != null && timerThread.isAlive())
+		{
+			try {
+				Thread.sleep(100);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+
+		timerThread = new Thread(fireTimer);
+		
 		fireTimer.clearTerminate();
+		fireTimer.resume();
 		timerThread.start();
 	}
 
@@ -334,18 +346,16 @@ public class BurningTower implements Screen {
 		stage.clear();
 		gameObjects.clear();
 		storeys.clear();
-		scoreFont.dispose();
-		timerFont.dispose();
 	}
 
 	@Override
 	public void pause() {
-		hide();
+		fireTimer.pause();
 	}
 
 	@Override
 	public void resume() {
-		resume();
+		fireTimer.resume();
 	}
 
 	@Override

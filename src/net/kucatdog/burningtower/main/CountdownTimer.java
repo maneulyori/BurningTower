@@ -6,6 +6,7 @@ public class CountdownTimer implements Runnable {
 	int timer = 0;
 
 	private volatile boolean terminateFlag = false;
+	private volatile boolean pauseFlag = false;
 
 	CountdownTimer(BurningTower context) {
 		this.context = context;
@@ -15,6 +16,9 @@ public class CountdownTimer implements Runnable {
 	public void run() {
 		for (timer = 60; timer > 0 && !terminateFlag; timer--) {
 			try {
+				while(pauseFlag) {
+					Thread.sleep(100);
+				}
 				Thread.sleep(1000);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
@@ -44,5 +48,13 @@ public class CountdownTimer implements Runnable {
 	
 	public void clearTerminate() {
 		terminateFlag = false;
+	}
+
+	public void pause() {
+		pauseFlag = true;
+	}
+	
+	public void resume() {
+		pauseFlag = false;
 	}
 }
