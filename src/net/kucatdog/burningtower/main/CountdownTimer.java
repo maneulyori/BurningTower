@@ -2,22 +2,28 @@ package net.kucatdog.burningtower.main;
 
 public class CountdownTimer implements Runnable {
 
-	GameContext context;
+	BurningTower context;
 	int timer = 0;
 
-	CountdownTimer(GameContext context) {
+	private volatile boolean terminateFlag = false;
+
+	CountdownTimer(BurningTower context) {
 		this.context = context;
 	}
 
 	@Override
 	public void run() {
-		for (timer = 60; timer > 0; timer--) {
+		for (timer = 60; timer > 0 && !terminateFlag; timer--) {
 			try {
 				Thread.sleep(1000);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
 		}
+
+		if (terminateFlag)
+			return;
+
 		context.startFire();
 	}
 
@@ -30,5 +36,13 @@ public class CountdownTimer implements Runnable {
 
 	public void setTime(int timer) {
 		this.timer = timer;
+	}
+
+	public void terminate() {
+		terminateFlag = true;
+	}
+	
+	public void clearTerminate() {
+		terminateFlag = false;
 	}
 }

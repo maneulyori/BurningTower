@@ -11,19 +11,19 @@ public class PyroActor extends Image {
 	Texture texture;
 	boolean toggleDirection = false;
 	boolean burnit = false;
-	GameContext context;
-	
+	BurningTower context;
+
 	GameObject fireobj;
 
-	PyroActor(GameContext context) {
+	PyroActor(BurningTower context) {
 		texture = new Texture(Gdx.files.internal("data/image/pyro.png"));
 
 		this.setDrawable(new TextureRegionDrawable(new TextureRegion(texture)));
-		
+
 		this.setWidth(texture.getWidth());
 		this.setHeight(texture.getHeight());
 		this.context = context;
-		this.fireobj = new GameObject();
+		this.fireobj = new GameObject(context);
 		fireobj.setPosition(130, 10);
 	}
 
@@ -46,9 +46,9 @@ public class PyroActor extends Image {
 		if (this.getX() <= 70) {
 			// TODO: Better animation for pyro
 			toggleDirection = true;
-			
-			for (GameObject obj : BurningTower.gameObjects) {
-				if(obj.isItNear(fireobj)) {
+
+			for (GameObject obj : context.gameObjects) {
+				if (obj.isItNear(fireobj)) {
 					obj.isBurning = true;
 				}
 			}
@@ -56,7 +56,7 @@ public class PyroActor extends Image {
 			context.playBGM();
 		}
 	}
-	
+
 	public void setFirePt(float x, float y) {
 		fireobj.setPosition(x, y);
 		fireobj.setY(y);

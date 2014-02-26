@@ -2,7 +2,7 @@ package net.kucatdog.burningtower.main;
 
 import java.util.Iterator;
 
-import com.badlogic.gdx.ApplicationListener;
+import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.audio.Music;
@@ -23,17 +23,17 @@ import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.JsonReader;
 import com.badlogic.gdx.utils.JsonValue;
-import com.badlogic.gdx.utils.TimeUtils;
 
-public class BurningTower implements ApplicationListener, GameContext {
+public class BurningTower implements Screen {
 
 	private final BurningTower self = this;
+	private MainMenu game;
 
 	private final int VIRTUAL_WIDTH = 768;
 	private final int VIRTUAL_HEIGHT = 1280;
 	// private GameObject background;
 	public static final int nOfFireImages = 2;
-	public static Texture[] fire = new Texture[nOfFireImages];
+	public Texture[] fire = new Texture[nOfFireImages];
 
 	public final int GRIDPIXELSIZE = 40;
 	// TODO: Read it from config file
@@ -50,8 +50,9 @@ public class BurningTower implements ApplicationListener, GameContext {
 	private BitmapFont timerFont;
 
 	private CountdownTimer fireTimer;
+	private Thread timerThread;
 
-	public static Array<GameObject> gameObjects = new Array<GameObject>();
+	public Array<GameObject> gameObjects = new Array<GameObject>();
 	private Array<StoreyObject> storeys = new Array<StoreyObject>();
 
 	private SpriteBatch batch;
@@ -64,11 +65,9 @@ public class BurningTower implements ApplicationListener, GameContext {
 
 	private PyroActor pyro;
 
-	public BurningTower() {
-	}
+	public BurningTower(MainMenu game) {
+		this.game = game;
 
-	@Override
-	public void create() {
 		GameObject.range = 80;
 		Texture.setEnforcePotImages(false);
 		cam = new OrthographicCamera(VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
@@ -76,7 +75,7 @@ public class BurningTower implements ApplicationListener, GameContext {
 		levelFile = Gdx.files.internal("data/levelData/level.json");
 		levelData = new JsonReader().parse(levelFile);
 
-		System.out.println(levelData);
+		System.out.println(levelData); // print parsed level.json
 		batch = new SpriteBatch();
 
 		scoreFont = new BitmapFont();
@@ -85,33 +84,7 @@ public class BurningTower implements ApplicationListener, GameContext {
 		stage = new Stage();
 		stage.setCamera(cam);
 
-		StoreyObject storey = new StoreyObject();
-		storey.setBounds(60, 10, 600, 300);
-		stage.addActor(storey);
-		storeys.add(storey);
-
-		storey = new StoreyObject();
-		storey.setBounds(60, 310, 600, 300);
-		stage.addActor(storey);
-		storeys.add(storey);
-		
-		Actor roof = new Actor() {
-			Texture texture = new Texture(Gdx.files.internal("data/image/roof.png"));
-			
-			@Override
-			public void draw(Batch batch, float alpha) {
-				super.draw(batch, alpha);
-
-				batch.draw(texture, this.getX(), this.getY(), this.getWidth(), this.getHeight());
-			}
-
-			@Override
-			public void act(float deltaTime) {
-			}
-		};
-		
-		roof.setBounds(40, 610, 640, 100);
-		stage.addActor(roof);
+		levelCnt = levelData.get("levelCnt").asInt();
 
 		for (int i = 0; i < nOfFireImages; i++)
 			fire[i] = new Texture(Gdx.files.internal("data/image/fire"
@@ -119,14 +92,67 @@ public class BurningTower implements ApplicationListener, GameContext {
 
 		bgm = Gdx.audio.newMusic(Gdx.files.internal("data/audio/fire.ogg"));
 
-		levelCnt = levelData.get("levelCnt").asInt();
+		fireTimer = new CountdownTimer(this);
+		timerThread = new Thread(fireTimer);
 
+		inputMultiplexer = new InputMultiplexer(stage);
+		// inputMultiplexer.addProcessor(1, stage);
+		Gdx.input.setInputProcessor(inputMultiplexer);
+	}
+
+	@Override
+	public void dispose() {
+		stage.dispose();
+		batch.dispose();
+		gameObjects.clear();
+		storeys.clear();
+		scoreFont.dispose();
+		timerFont.dispose();
+
+		for (int i = 0; i < fire.length; i++) {
+			fire[i].dispose();
+		}
+	}
+
+	@Override
+	public void show() {
 		Iterator<JsonValue> levelIterator = levelData.get("1").iterator();
+		// TODO: get level from constructor.
+
+		StoreyObject storey = new StoreyObject(this);
+		storey.setBounds(60, 10, 600, 300);
+		stage.addActor(storey);
+		storeys.add(storey);
+
+		storey = new StoreyObject(this);
+		storey.setBounds(60, 310, 600, 300);
+		stage.addActor(storey);
+		storeys.add(storey);
+
+		Actor roof = new Actor() {
+			Texture texture = new Texture(
+					Gdx.files.internal("data/image/roof.png"));
+
+			@Override
+			public void draw(Batch batch, float alpha) {
+				super.draw(batch, alpha);
+
+				batch.draw(texture, this.getX(), this.getY(), this.getWidth(),
+						this.getHeight());
+			}
+
+			@Override
+			public void act(float deltaTime) {
+			}
+		};
+
+		roof.setBounds(40, 610, 640, 100);
+		stage.addActor(roof);
 
 		while (levelIterator.hasNext()) {
 			JsonValue objects = levelIterator.next();
 
-			final GameObject object = new GameObject();
+			final GameObject object = new GameObject(this);
 
 			object.setObjType(objects.get("type").asString(),
 					objects.get("leaveRuin").asBoolean());
@@ -260,13 +286,11 @@ public class BurningTower implements ApplicationListener, GameContext {
 
 			stage.addActor(object);
 			gameObjects.add(object);
+
 		}
 
-		FireActor fireactor = new FireActor();
+		FireActor fireactor = new FireActor(this);
 		stage.addActor(fireactor);
-
-		// Pyro!
-		// burner.setFire(130, 10);
 
 		pyro = new PyroActor(this);
 
@@ -300,30 +324,32 @@ public class BurningTower implements ApplicationListener, GameContext {
 
 		stage.addActor(fireButton);
 
-		fireTimer = new CountdownTimer(this);
-
-		Thread timerThread = new Thread(fireTimer);
-
+		fireTimer.clearTerminate();
 		timerThread.start();
-
-		inputMultiplexer = new InputMultiplexer(stage);
-		// inputMultiplexer.addProcessor(1, stage);
-		Gdx.input.setInputProcessor(inputMultiplexer);
 	}
 
 	@Override
-	public void dispose() {
-		stage.dispose();
-		batch.dispose();
+	public void hide() {
+		fireTimer.terminate(); // Terminate fire timer.
+		stage.clear();
+		gameObjects.clear();
+		storeys.clear();
+		scoreFont.dispose();
+		timerFont.dispose();
 	}
 
 	@Override
 	public void pause() {
-
+		hide();
 	}
 
 	@Override
-	public void render() {
+	public void resume() {
+		resume();
+	}
+
+	@Override
+	public void render(float delta) {
 		Gdx.gl.glClearColor(0, 0, 0.2f, 1);
 		Gdx.gl.glClear(GL10.GL_COLOR_BUFFER_BIT);
 		Gdx.gl.glViewport(0, 0, Gdx.graphics.getWidth(),
@@ -334,7 +360,7 @@ public class BurningTower implements ApplicationListener, GameContext {
 
 		batch.begin();
 
-		stage.act(Gdx.graphics.getDeltaTime());
+		stage.act(delta);
 		stage.draw();
 
 		batch.end();
@@ -348,8 +374,10 @@ public class BurningTower implements ApplicationListener, GameContext {
 			}
 		}
 
-		if ((!isBurning) && dragLock)
+		if ((!isBurning) && dragLock) {
+			dragLock = false;
 			this.stopBGM();
+		}
 
 		batch.begin();
 
@@ -385,28 +413,19 @@ public class BurningTower implements ApplicationListener, GameContext {
 		cam.update();
 	}
 
-	@Override
-	public void resume() {
-
-	}
-
-	@Override
 	public void playBGM() {
 		bgm.setLooping(true);
 		bgm.play();
 	}
 
-	@Override
 	public void stopBGM() {
 		bgm.stop();
 	}
 
-	@Override
 	public boolean isBGMPlaying() {
 		return bgm.isPlaying();
 	}
 
-	@Override
 	public void startFire() {
 		pyro.burnIt();
 		fireTimer.setTime(0);

@@ -8,12 +8,16 @@ import com.badlogic.gdx.scenes.scene2d.Actor;
 
 public class StoreyObject extends Actor {
 
+	BurningTower context;
+	
 	Texture wall_right;
 	Texture wall_left;
 	Texture wall_back;
 	Texture floor;
 
-	StoreyObject() {
+	StoreyObject(BurningTower context) {
+		this.context = context;
+		
 		wall_right = new Texture(
 				Gdx.files.internal("data/image/side_block.png"));
 		wall_left = new Texture(Gdx.files.internal("data/image/side_con.png"));
@@ -29,7 +33,7 @@ public class StoreyObject extends Actor {
 	@Override
 	public void act(float deltaTime) {
 		// TODO: Burn part of floor when burning object is just below celing
-		for (GameObject obj : BurningTower.gameObjects) {
+		for (GameObject obj : context.gameObjects) {
 			//
 		}
 	}

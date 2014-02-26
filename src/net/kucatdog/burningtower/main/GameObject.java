@@ -11,6 +11,8 @@ import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Array;
 
 public class GameObject extends Image {
+	BurningTower context;
+	
 	public static float range;
 
 	public String objectType;
@@ -33,6 +35,9 @@ public class GameObject extends Image {
 
 	public ArrayList<Point> firepts = new ArrayList<Point>();
 
+	public GameObject(BurningTower context) {
+		this.context = context;
+	}
 	@Override
 	public void draw(Batch batch, float alpha) {
 		super.draw(batch, alpha);
@@ -62,7 +67,7 @@ public class GameObject extends Image {
 				this.resist--;
 				this.flameSpread++;
 
-				for (GameObject obj : BurningTower.gameObjects) {
+				for (GameObject obj : context.gameObjects) {
 					if (obj == this)
 						continue;
 

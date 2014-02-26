@@ -7,13 +7,18 @@ import com.badlogic.gdx.utils.TimeUtils;
 
 public class FireActor extends Actor{
 
+	BurningTower context;
+	
+	public FireActor (BurningTower context) {
+		this.context = context;
+	}
 	@Override
 	public void draw(Batch batch, float alpha) {
 		super.draw(batch, alpha);
 
-		for (GameObject obj : BurningTower.gameObjects) {
+		for (GameObject obj : context.gameObjects) {
 			if (obj.isBurning) {
-				Texture fireToDraw = BurningTower.fire[(int) (TimeUtils.millis() / 500 % BurningTower.nOfFireImages)];
+				Texture fireToDraw = context.fire[(int) (TimeUtils.millis() / 500 % BurningTower.nOfFireImages)];
 				
 				for (Point pt : obj.firepts) {
 					batch.draw(fireToDraw, pt.x, pt.y);
