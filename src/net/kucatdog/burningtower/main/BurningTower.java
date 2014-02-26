@@ -45,6 +45,7 @@ public class BurningTower implements Screen {
 	private Music bgm;
 
 	private int levelCnt;
+	private int level;
 
 	private BitmapFont scoreFont;
 	private BitmapFont timerFont;
@@ -65,8 +66,9 @@ public class BurningTower implements Screen {
 
 	private PyroActor pyro;
 
-	public BurningTower(MainMenu game) {
+	public BurningTower(MainMenu game, int level) {
 		this.game = game;
+		this.level = level;
 
 		GameObject.range = 80;
 		Texture.setEnforcePotImages(false);
@@ -115,8 +117,7 @@ public class BurningTower implements Screen {
 
 	@Override
 	public void show() {
-		Iterator<JsonValue> levelIterator = levelData.get("1").iterator();
-		// TODO: get level from constructor.
+		Iterator<JsonValue> levelIterator = levelData.get(Integer.toString(level)).iterator();
 
 		StoreyObject storey = new StoreyObject(this);
 		storey.setBounds(60, 10, 600, 300);
