@@ -8,26 +8,34 @@ import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
-import com.badlogic.gdx.utils.Array;
 
 public class GameObject extends Image {
+	
+	public enum PlaceLocation {
+		FLOOR, WALL, CEILING
+	}
+	
+	public enum ObjectProp {
+		EXPLOSIVE, DISTINGUISHER, NORMAL
+	}
+
 	BurningTower context;
 	
 	public static float range;
 
-	public String objectType;
-	public Texture texture;
-	public TextureRegionDrawable drawable;
-	public TextureRegionDrawable ashDrawable;
-	public int resist;
-	public int flameCnt;
+	private String objectType;
+	private Texture texture;
+	private TextureRegionDrawable drawable;
+	private TextureRegionDrawable ashDrawable;
+	private int resist;
+	private int flameCnt;
 
-	public int flameSpread = 0;
-	public boolean objectPlaceable = false;
-	public PlaceLocation placeLocation;
+	private int flameSpread = 0;
+	private PlaceLocation placeLocation = PlaceLocation.WALL;
+	private ObjectProp objectProp = ObjectProp.NORMAL;
 
-	public boolean isBurning = false;
-	public boolean isBurnt = false;
+	private boolean burningFlag = false;
+	private boolean burntFlag = false;
 
 	private int prevFlameSpread = 0;
 
@@ -48,10 +56,10 @@ public class GameObject extends Image {
 
 		deltaTime += delta;
 
-		if (this.isBurnt)
+		if (this.burntFlag)
 			this.setDrawable(ashDrawable);
 
-		if (this.isBurning && this.flameSpread / 20 != prevFlameSpread) {
+		if (this.burningFlag && this.flameSpread / 20 != prevFlameSpread) {
 			prevFlameSpread = this.flameSpread / 20;
 			Point p = new Point();
 			p.x = (int) (this.getX() + Math.random() * this.getWidth());
@@ -63,15 +71,15 @@ public class GameObject extends Image {
 		if (deltaTime > 50.0 / 1000.0) {
 			deltaTime = 0;
 
-			if (this.isBurning) {
+			if (this.burningFlag) {
 				this.resist--;
 				this.flameSpread++;
 
 				for (GameObject obj : context.gameObjects) {
-					if (obj == this)
+					if (obj.equals(this))
 						continue;
 
-					if (obj.isBurnt) // Skip burnt object.
+					if (obj.burntFlag) // Skip burnt object.
 						continue;
 
 					if (obj.isItNear(this) && obj.flameCnt > 0) {
@@ -81,10 +89,10 @@ public class GameObject extends Image {
 			}
 
 			if (this.flameCnt <= 0)
-				this.isBurning = true;
+				this.burningFlag = true;
 			if (this.resist <= 0) {
-				this.isBurning = false;
-				this.isBurnt = true;
+				this.burningFlag = false;
+				this.burntFlag = true;
 			}
 		}
 	}
@@ -111,6 +119,46 @@ public class GameObject extends Image {
 
 		this.objectType = objectType;
 	}
+	
+	public void setPlaceLocation(PlaceLocation location) {
+		this.placeLocation = location;
+	}
+	
+	public void setObjectProp(ObjectProp prop) {
+		this.objectProp = prop;
+	}
+	
+	public void setResist(int resist) {
+		this.resist = resist;
+	}
+	
+	public void setFlameCnt(int flameCnt) {
+		this.flameCnt = flameCnt;
+	}
+	
+	public String getObjectType() {
+		return objectType;
+	}
+	
+	public ObjectProp getObjectProp() {
+		return objectProp;
+	}
+	
+	public PlaceLocation getPlaceLocation() {
+		return placeLocation;
+	}
+	
+	public boolean isBurning() {
+		return burningFlag;
+	}
+	
+	public boolean isBurnt() {
+		return burntFlag;
+	}
+	
+	public void decreaseFlameCnt() {
+		this.flameCnt--;
+	}
 
 	public boolean isItNear(GameObject obj) {
 		float x = obj.getX();
@@ -123,5 +171,9 @@ public class GameObject extends Image {
 			return true;
 
 		return false;
+	}
+	
+	public void setFire() {
+		burningFlag = true;
 	}
 }

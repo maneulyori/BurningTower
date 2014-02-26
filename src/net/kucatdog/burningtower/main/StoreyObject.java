@@ -1,23 +1,47 @@
 package net.kucatdog.burningtower.main;
 
+import java.util.ArrayList;
+
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.Texture.TextureWrap;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.utils.Array;
 
 public class StoreyObject extends Actor {
 
 	BurningTower context;
-	
-	Texture wall_right;
-	Texture wall_left;
-	Texture wall_back;
-	Texture floor;
+
+	private Texture wall_right;
+	private Texture wall_left;
+	private Texture wall_back;
+	private Texture floor;
+	private Texture[] floorFire = new Texture[3];
+	private Texture floorFire_draw;
+
+	private float deltaTime = 0;
+	private int cnt = 0;
+	private int fire_start = -1, fire_end = -1;
+
+	private Boolean fireFlag = false;
+
+	// TODO: Read it from config
+	private int flameCnt = 100;
+	private int resist = 100;
 
 	StoreyObject(BurningTower context) {
 		this.context = context;
-		
+
+		for (int i = 0; i < floorFire.length; i++) {
+			floorFire[i] = new Texture(
+					Gdx.files.internal("data/image/floorFire" + (1 + i)
+							+ ".png"));
+			floorFire[i].setWrap(TextureWrap.Repeat, TextureWrap.Repeat);
+		}
+
+		floorFire_draw = floorFire[0];
+
 		wall_right = new Texture(
 				Gdx.files.internal("data/image/side_block.png"));
 		wall_left = new Texture(Gdx.files.internal("data/image/side_con.png"));
@@ -31,10 +55,62 @@ public class StoreyObject extends Actor {
 	}
 
 	@Override
-	public void act(float deltaTime) {
-		// TODO: Burn part of floor when burning object is just below celing
-		for (GameObject obj : context.gameObjects) {
-			//
+	public void act(float delta) {
+
+		deltaTime += delta;
+
+		if (deltaTime > 50.0 / 1000.0) {
+			deltaTime = 0;
+
+			// Decrease flameCnt.
+			if (fire_start == -1 && fire_end == -1) {
+				for (GameObject obj : context.gameObjects) {
+
+					if (obj.getY() + GameObject.range <= this.getY()
+							&& obj.isBurning()) {
+						this.flameCnt--;
+
+						if (flameCnt <= 0) {
+							fireFlag = true;
+							fire_start = (int) obj.getX();
+							fire_end = (int) obj.getX();
+							break;
+						}
+					}
+				}
+			}
+
+			if (fireFlag) {
+				resist--;
+
+				if (resist <= 0)
+					fireFlag = false;
+
+				for (GameObject obj : context.gameObjects) {
+					if (obj.isBurnt()) // Skip burnt object.
+						continue;
+
+					if (obj.getY() > this.getY()
+							&& obj.getY() < this.getY() + GameObject.range) {
+						if (obj.getX() > fire_start && obj.getX() < fire_end) {
+							obj.decreaseFlameCnt();
+						}
+					}
+				}
+
+				cnt++;
+
+				if (cnt >= 20) {
+					cnt = 0;
+
+					if (fire_start > this.getX()) {
+						fire_start -= floorFire[0].getWidth();
+					}
+					if (fire_end < this.getX() + this.getWidth()) {
+						fire_end += floorFire[0].getWidth();
+					}
+				}
+			}
 		}
 	}
 
@@ -54,6 +130,19 @@ public class StoreyObject extends Actor {
 		batch.draw(floor, this.getX(), this.getY() - floor.getHeight(),
 				this.getWidth(), floor.getHeight(), 0, 1, this.getWidth()
 						/ floor.getWidth(), 0);
+
+		if (fireFlag) {
+			batch.draw(floorFire_draw, fire_start, this.getY(), fire_end
+					- fire_start, floorFire_draw.getHeight(), 0, 1,
+					(fire_end - fire_start) / floorFire_draw.getWidth(), 0);
+		}
 	}
 
+	public boolean isBurning() {
+		return fireFlag;
+	}
+
+	public boolean isBurnt() {
+		return resist <= 0;
+	}
 }

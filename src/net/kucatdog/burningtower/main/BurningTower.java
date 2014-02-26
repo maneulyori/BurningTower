@@ -4,51 +4,41 @@ import java.util.Iterator;
 
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.audio.Music;
-import com.badlogic.gdx.files.FileHandle;
-import com.badlogic.gdx.graphics.GL10;
-import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
-import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.utils.DragListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.JsonReader;
 import com.badlogic.gdx.utils.JsonValue;
 
-public class BurningTower implements Screen {
+public class BurningTower extends GameScreen implements Screen {
 
 	private final BurningTower self = this;
-	private MainMenu game;
 
-	private final int VIRTUAL_WIDTH = 768;
-	private final int VIRTUAL_HEIGHT = 1280;
-	// private GameObject background;
-	public static final int nOfFireImages = 2;
-	public Texture[] fire = new Texture[nOfFireImages];
+	public Texture[] fire = new Texture[2];
 
 	public final int GRIDPIXELSIZE = 40;
 	// TODO: Read it from config file
 
 	public static boolean dragLock = false;
 
-	private Stage stage;
-
 	private Music bgm;
 
-	private int levelCnt;
 	private int level;
 
 	private BitmapFont scoreFont;
 	private BitmapFont timerFont;
+	private Label scoreLabel;
+	private Label timerLabel;
 
 	private CountdownTimer fireTimer;
 	private Thread timerThread;
@@ -56,55 +46,37 @@ public class BurningTower implements Screen {
 	public Array<GameObject> gameObjects = new Array<GameObject>();
 	private Array<StoreyObject> storeys = new Array<StoreyObject>();
 
-	private SpriteBatch batch;
-	private FileHandle levelFile;
 	private JsonValue levelData;
-
-	private InputMultiplexer inputMultiplexer;
-
-	private OrthographicCamera cam;
 
 	private PyroActor pyro;
 
 	public BurningTower(MainMenu game, int level) {
-		this.game = game;
+		super(game);
+
 		this.level = level;
 
 		GameObject.range = 80;
 		Texture.setEnforcePotImages(false);
-		cam = new OrthographicCamera(VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
 
-		levelFile = Gdx.files.internal("data/levelData/level.json");
-		levelData = new JsonReader().parse(levelFile);
+		levelData = new JsonReader().parse(game.levelFile);
 
 		System.out.println(levelData); // print parsed level.json
-		batch = new SpriteBatch();
 
 		scoreFont = new BitmapFont();
 		timerFont = new BitmapFont();
 
-		stage = new Stage();
-		stage.setCamera(cam);
-
-		levelCnt = levelData.get("levelCnt").asInt();
-
-		for (int i = 0; i < nOfFireImages; i++)
+		for (int i = 0; i < fire.length; i++)
 			fire[i] = new Texture(Gdx.files.internal("data/image/fire"
 					+ (i + 1) + ".png"));
 
 		bgm = Gdx.audio.newMusic(Gdx.files.internal("data/audio/fire.ogg"));
-		
-		fireTimer = new CountdownTimer(this);
 
-		inputMultiplexer = new InputMultiplexer(stage);
-		// inputMultiplexer.addProcessor(1, stage);
-		Gdx.input.setInputProcessor(inputMultiplexer);
+		fireTimer = new CountdownTimer(this);
 	}
 
 	@Override
 	public void dispose() {
-		stage.dispose();
-		batch.dispose();
+		super.dispose();
 		gameObjects.clear();
 		storeys.clear();
 		scoreFont.dispose();
@@ -117,7 +89,10 @@ public class BurningTower implements Screen {
 
 	@Override
 	public void show() {
-		Iterator<JsonValue> levelIterator = levelData.get(Integer.toString(level)).iterator();
+		super.show();
+
+		Iterator<JsonValue> levelIterator = levelData.get(
+				Integer.toString(level)).iterator();
 
 		StoreyObject storey = new StoreyObject(this);
 		storey.setBounds(60, 10, 600, 300);
@@ -156,10 +131,10 @@ public class BurningTower implements Screen {
 
 			object.setObjType(objects.get("type").asString(),
 					objects.get("leaveRuin").asBoolean());
-			object.resist = objects.get("resist").asInt();
+			object.setResist(objects.get("resist").asInt());
 			object.setX(objects.get("locationX").asFloat());
 			object.setY(objects.get("locationY").asFloat());
-			object.flameCnt = objects.get("flammable").asInt();
+			object.setFlameCnt(objects.get("flammable").asInt());
 
 			if (objects.get("width") != null)
 				object.setWidth(objects.get("width").asInt());
@@ -265,7 +240,7 @@ public class BurningTower implements Screen {
 									&& object.getY() < obj.getY()
 											+ obj.getHeight()) {
 								System.out.println("COLLIDE! with "
-										+ obj.objectType);
+										+ obj.getObjectType());
 								object.setPosition(original_x, original_y);
 							}
 						}
@@ -324,18 +299,29 @@ public class BurningTower implements Screen {
 
 		stage.addActor(fireButton);
 
-		while(timerThread != null && timerThread.isAlive())
-		{
+		timerFont.setScale(2);
+		scoreFont.setScale(2);
+
+		timerLabel = new Label("Aiya, ambar!", new Label.LabelStyle(timerFont,
+				Color.WHITE));
+		timerLabel.setPosition(260, 1240);
+		stage.addActor(timerLabel);
+
+		scoreLabel = new Label("Aiya, ambar!", new Label.LabelStyle(scoreFont,
+				Color.WHITE));
+		scoreLabel.setPosition(260, 1200);
+		stage.addActor(scoreLabel);
+
+		while (timerThread != null && timerThread.isAlive()) {
 			try {
 				Thread.sleep(100);
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
 
 		timerThread = new Thread(fireTimer);
-		
+
 		fireTimer.clearTerminate();
 		fireTimer.resume();
 		timerThread.start();
@@ -343,85 +329,79 @@ public class BurningTower implements Screen {
 
 	@Override
 	public void hide() {
+		super.hide();
 		fireTimer.terminate(); // Terminate fire timer.
-		stage.clear();
 		gameObjects.clear();
 		storeys.clear();
 	}
 
 	@Override
 	public void pause() {
+		super.pause();
 		fireTimer.pause();
 	}
 
 	@Override
 	public void resume() {
+		super.resume();
 		fireTimer.resume();
 	}
 
 	@Override
 	public void render(float delta) {
-		Gdx.gl.glClearColor(0, 0, 0.2f, 1);
-		Gdx.gl.glClear(GL10.GL_COLOR_BUFFER_BIT);
-		Gdx.gl.glViewport(0, 0, Gdx.graphics.getWidth(),
-				Gdx.graphics.getHeight());
+		super.render(delta);
 
 		int notburn = 0;
 		boolean isBurning = false;
 
-		batch.begin();
-
-		stage.act(delta);
-		stage.draw();
-
-		batch.end();
-
 		for (GameObject obj : gameObjects) {
-			if (!(obj.isBurning || obj.isBurnt)) {
+			if (obj.isBurning()) {
+				isBurning = true;
+			} else if (!(obj.isBurning() || obj.isBurnt())) {
 				notburn++;
 			}
-			if (obj.isBurning) {
+		}
+
+		for (StoreyObject obj : storeys) {
+			if (obj.isBurning()) {
 				isBurning = true;
+			} else if (!(obj.isBurning() || obj.isBurnt())) {
+				notburn++;
 			}
 		}
 
 		if ((!isBurning) && dragLock) {
 			dragLock = false;
-			this.stopBGM();
+			this.stopBurning();
 		}
 
-		batch.begin();
-
-		float scale = 1 / cam.zoom * 2;
-
-		timerFont.setScale(scale);
-		scoreFont.setScale(scale);
-
-		timerFont.draw(batch, fireTimer.getTimerStr(),
-				Gdx.graphics.getWidth() / 2 - 50, Gdx.graphics.getHeight() - 10
-						* scale);
-		scoreFont.draw(batch, "Burnt " + 100 * (gameObjects.size - notburn)
-				/ gameObjects.size + "%", Gdx.graphics.getWidth() / 2 - 50,
-				Gdx.graphics.getHeight() - 25 * scale);
-
-		batch.end();
+		if (gameObjects.size != 0) {
+			timerLabel.setText(fireTimer.getTimerStr());
+			scoreLabel.setText("Burnt " + 100
+					* (gameObjects.size + storeys.size - 1 - notburn)
+					/ (gameObjects.size + storeys.size - 1) + "%");
+		}
 	}
 
 	@Override
 	public void resize(int width, int height) {
-		cam.viewportHeight = height; // set the viewport
-		cam.viewportWidth = width;
-		if (VIRTUAL_WIDTH / cam.viewportWidth < VIRTUAL_HEIGHT
-				/ cam.viewportHeight) {
-			// sett the right zoom direct
-			cam.zoom = VIRTUAL_HEIGHT / cam.viewportHeight;
-		} else {
-			// sett the right zoom direct
-			cam.zoom = VIRTUAL_WIDTH / cam.viewportWidth;
+		super.resize(width, height);
+	}
+
+	public void stopBurning() {
+		int notburn = 0;
+
+		stopBGM();
+
+		for (GameObject obj : gameObjects) {
+			if (!(obj.isBurning() || obj.isBurnt())) {
+				notburn++;
+			}
 		}
-		cam.position.set(cam.zoom * cam.viewportWidth / 2.0f, cam.zoom
-				* cam.viewportHeight / 2.0f, 0);
-		cam.update();
+
+		game.scoreScreen.setScore(100 * (gameObjects.size - notburn)
+				/ gameObjects.size);
+		game.setScreen(game.scoreScreen);
 	}
 
 	public void playBGM() {

@@ -3,42 +3,36 @@ package net.kucatdog.burningtower.main;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
-public class SplashScreen implements Screen{
-
-	MainMenu game;
+public class SplashScreen extends GameScreen implements Screen{
+	
 	Texture splash;
-	SpriteBatch batch;
 	
 	SplashScreen(MainMenu game) {
-		this.game = game;
-		
-		batch = new SpriteBatch();
+		super(game);
 		
 		splash = new Texture(Gdx.files.internal("data/image/start.png"));
 	}
 	
 	@Override
 	public void show() {
-		// TODO Auto-generated method stub
-		
+		super.show();
 	}
 	
 	@Override
 	public void hide() {
-		// TODO Auto-generated method stub
-		
+		super.hide();
 	}
 
 	@Override
 	public void pause() {
-		// TODO Auto-generated method stub
-		
+		super.pause();
 	}
 
 	@Override
 	public void render(float delta) {
+		super.render(delta);
+		
 		batch.begin();
 		
 		batch.draw(splash, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
@@ -50,21 +44,19 @@ public class SplashScreen implements Screen{
 	}
 
 	@Override
-	public void resize(int arg0, int arg1) {
-		// TODO Auto-generated method stub
-		
+	public void resize(int width, int height) {
+		super.resize(width, height);
 	}
 
 	@Override
 	public void resume() {
-		// TODO Auto-generated method stub
-		
+		super.resume();
 	}
 	
 	@Override
 	public void dispose() {
+		super.dispose();
 		splash.dispose();
-		batch.dispose();
 	}
 
 }

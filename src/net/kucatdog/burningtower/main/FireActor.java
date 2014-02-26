@@ -17,8 +17,8 @@ public class FireActor extends Actor{
 		super.draw(batch, alpha);
 
 		for (GameObject obj : context.gameObjects) {
-			if (obj.isBurning) {
-				Texture fireToDraw = context.fire[(int) (TimeUtils.millis() / 500 % BurningTower.nOfFireImages)];
+			if (obj.isBurning()) {
+				Texture fireToDraw = context.fire[(int) (TimeUtils.millis() / 500 % context.fire.length)];
 				
 				for (Point pt : obj.firepts) {
 					batch.draw(fireToDraw, pt.x, pt.y);

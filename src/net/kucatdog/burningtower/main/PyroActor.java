@@ -49,7 +49,7 @@ public class PyroActor extends Image {
 
 			for (GameObject obj : context.gameObjects) {
 				if (obj.isItNear(fireobj)) {
-					obj.isBurning = true;
+					obj.setFire();
 				}
 			}
 			BurningTower.dragLock = true;
