@@ -66,7 +66,7 @@ public class StoreyObject extends Actor {
 			if (fire_start == -1 && fire_end == -1) {
 				for (GameObject obj : context.gameObjects) {
 
-					if (obj.getY() + GameObject.range <= this.getY()
+					if (obj.getY() + context.fireRange <= this.getY()
 							&& obj.isBurning()) {
 						this.flameCnt--;
 
@@ -91,7 +91,7 @@ public class StoreyObject extends Actor {
 						continue;
 
 					if (obj.getY() > this.getY()
-							&& obj.getY() < this.getY() + GameObject.range) {
+							&& obj.getY() < this.getY() + context.fireRange) {
 						if (obj.getX() > fire_start && obj.getX() < fire_end) {
 							obj.decreaseFlameCnt();
 						}

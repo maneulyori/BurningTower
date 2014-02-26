@@ -4,21 +4,21 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Texture;
 
-public class SplashScreen extends GameScreen implements Screen{
-	
+public class SplashScreen extends GameScreen implements Screen {
+
 	Texture splash;
-	
+
 	SplashScreen(MainMenu game) {
 		super(game);
-		
+
 		splash = new Texture(Gdx.files.internal("data/image/start.png"));
 	}
-	
+
 	@Override
 	public void show() {
 		super.show();
 	}
-	
+
 	@Override
 	public void hide() {
 		super.hide();
@@ -32,15 +32,16 @@ public class SplashScreen extends GameScreen implements Screen{
 	@Override
 	public void render(float delta) {
 		super.render(delta);
-		
+
 		batch.begin();
-		
-		batch.draw(splash, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-		
+
+		batch.draw(splash, 0, 0, Gdx.graphics.getWidth(),
+				Gdx.graphics.getHeight());
+
 		batch.end();
-		
+
 		if (Gdx.input.justTouched()) // use your own criterion here
-            game.setScreen(game.gameMain);
+			game.setScreen(game.gameMain);
 	}
 
 	@Override
@@ -52,7 +53,7 @@ public class SplashScreen extends GameScreen implements Screen{
 	public void resume() {
 		super.resume();
 	}
-	
+
 	@Override
 	public void dispose() {
 		super.dispose();

@@ -29,6 +29,9 @@ public class BurningTower extends GameScreen implements Screen {
 	public final int GRIDPIXELSIZE = 40;
 	// TODO: Read it from config file
 
+	public float fireRange;
+	public float gameTick;
+
 	public static boolean dragLock = false;
 
 	private Music bgm;
@@ -55,10 +58,12 @@ public class BurningTower extends GameScreen implements Screen {
 
 		this.level = level;
 
-		GameObject.range = 80;
 		Texture.setEnforcePotImages(false);
 
 		levelData = new JsonReader().parse(game.levelFile);
+
+		fireRange = levelData.get("defaultRange").asFloat();
+		gameTick = levelData.get("gameTick").asFloat();
 
 		System.out.println(levelData); // print parsed level.json
 

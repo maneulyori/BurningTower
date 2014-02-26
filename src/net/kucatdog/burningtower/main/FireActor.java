@@ -5,13 +5,14 @@ import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.utils.TimeUtils;
 
-public class FireActor extends Actor{
+public class FireActor extends Actor {
 
 	BurningTower context;
-	
-	public FireActor (BurningTower context) {
+
+	public FireActor(BurningTower context) {
 		this.context = context;
 	}
+
 	@Override
 	public void draw(Batch batch, float alpha) {
 		super.draw(batch, alpha);
@@ -19,7 +20,7 @@ public class FireActor extends Actor{
 		for (GameObject obj : context.gameObjects) {
 			if (obj.isBurning()) {
 				Texture fireToDraw = context.fire[(int) (TimeUtils.millis() / 500 % context.fire.length)];
-				
+
 				for (Point pt : obj.firepts) {
 					batch.draw(fireToDraw, pt.x, pt.y);
 				}

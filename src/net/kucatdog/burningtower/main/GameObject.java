@@ -10,18 +10,18 @@ import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 
 public class GameObject extends Image {
-	
+
 	public enum PlaceLocation {
 		FLOOR, WALL, CEILING
 	}
-	
+
 	public enum ObjectProp {
 		EXPLOSIVE, DISTINGUISHER, NORMAL
 	}
 
 	BurningTower context;
-	
-	public static float range;
+
+	private float range;
 
 	private String objectType;
 	private Texture texture;
@@ -40,12 +40,14 @@ public class GameObject extends Image {
 	private int prevFlameSpread = 0;
 
 	float deltaTime = 0;
+	int cnt = 0;
 
 	public ArrayList<Point> firepts = new ArrayList<Point>();
 
 	public GameObject(BurningTower context) {
 		this.context = context;
 	}
+
 	@Override
 	public void draw(Batch batch, float alpha) {
 		super.draw(batch, alpha);
@@ -53,6 +55,7 @@ public class GameObject extends Image {
 
 	@Override
 	public void act(float delta) {
+		range = context.fireRange;
 
 		deltaTime += delta;
 
@@ -70,6 +73,23 @@ public class GameObject extends Image {
 
 		if (deltaTime > 50.0 / 1000.0) {
 			deltaTime = 0;
+
+			if (cnt != -1 && objectProp != ObjectProp.NORMAL)
+				cnt++;
+
+			if (cnt < 100) {
+				switch (objectProp) {
+				case DISTINGUISHER:
+					break;
+				case EXPLOSIVE:
+					range *= 2;
+					break;
+				default:
+					System.out.println("are you sane?");
+				}
+			} else {
+				cnt = -1;
+			}
 
 			if (this.burningFlag) {
 				this.resist--;
@@ -119,43 +139,43 @@ public class GameObject extends Image {
 
 		this.objectType = objectType;
 	}
-	
+
 	public void setPlaceLocation(PlaceLocation location) {
 		this.placeLocation = location;
 	}
-	
+
 	public void setObjectProp(ObjectProp prop) {
 		this.objectProp = prop;
 	}
-	
+
 	public void setResist(int resist) {
 		this.resist = resist;
 	}
-	
+
 	public void setFlameCnt(int flameCnt) {
 		this.flameCnt = flameCnt;
 	}
-	
+
 	public String getObjectType() {
 		return objectType;
 	}
-	
+
 	public ObjectProp getObjectProp() {
 		return objectProp;
 	}
-	
+
 	public PlaceLocation getPlaceLocation() {
 		return placeLocation;
 	}
-	
+
 	public boolean isBurning() {
 		return burningFlag;
 	}
-	
+
 	public boolean isBurnt() {
 		return burntFlag;
 	}
-	
+
 	public void decreaseFlameCnt() {
 		this.flameCnt--;
 	}
@@ -172,7 +192,7 @@ public class GameObject extends Image {
 
 		return false;
 	}
-	
+
 	public void setFire() {
 		burningFlag = true;
 	}

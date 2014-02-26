@@ -16,7 +16,7 @@ public class CountdownTimer implements Runnable {
 	public void run() {
 		for (timer = 60; timer > 0 && !terminateFlag; timer--) {
 			try {
-				while(pauseFlag) {
+				while (pauseFlag) {
 					Thread.sleep(100);
 				}
 				Thread.sleep(1000);
@@ -45,7 +45,7 @@ public class CountdownTimer implements Runnable {
 	public void terminate() {
 		terminateFlag = true;
 	}
-	
+
 	public void clearTerminate() {
 		terminateFlag = false;
 	}
@@ -53,7 +53,7 @@ public class CountdownTimer implements Runnable {
 	public void pause() {
 		pauseFlag = true;
 	}
-	
+
 	public void resume() {
 		pauseFlag = false;
 	}
