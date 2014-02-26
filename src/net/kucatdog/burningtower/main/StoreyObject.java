@@ -59,7 +59,7 @@ public class StoreyObject extends Actor {
 
 		deltaTime += delta;
 
-		if (deltaTime > 50.0 / 1000.0) {
+		if (deltaTime > context.gameTick / 1000.0) {
 			deltaTime = 0;
 
 			// Decrease flameCnt.

@@ -71,7 +71,7 @@ public class GameObject extends Image {
 			firepts.add(p);
 		}
 
-		if (deltaTime > 50.0 / 1000.0) {
+		if (deltaTime > context.gameTick / 1000.0) {
 			deltaTime = 0;
 
 			if (cnt != -1 && objectProp != ObjectProp.NORMAL)
