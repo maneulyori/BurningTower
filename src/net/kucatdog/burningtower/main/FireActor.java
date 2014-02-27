@@ -7,7 +7,8 @@ import com.badlogic.gdx.utils.TimeUtils;
 
 public class FireActor extends Actor {
 
-	BurningTowerScreen context;
+	private BurningTowerScreen context;
+	private boolean setFireForever = false;
 
 	public FireActor(BurningTowerScreen context) {
 		this.context = context;
@@ -18,7 +19,7 @@ public class FireActor extends Actor {
 		super.draw(batch, alpha);
 
 		for (GameObject obj : context.gameObjects) {
-			if (obj.isBurning()) {
+			if (obj.isBurning() || setFireForever) {
 				Texture fireToDraw = context.fire[(int) (TimeUtils.millis() / 500 % context.fire.length)];
 
 				for (Point pt : obj.firepts) {
@@ -37,5 +38,9 @@ public class FireActor extends Actor {
 
 	@Override
 	public void act(float deltaTime) {
+	}
+	
+	public void setFireForever() {
+		setFireForever = true;
 	}
 }

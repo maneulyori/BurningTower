@@ -35,12 +35,11 @@ public class BurningTowerScreen extends GameScreen implements Screen {
 	public final int GRIDPIXELSIZE = 32;
 	// TODO: Read it from config file
 
-	public float fireRange;
-	public float gameTick;
-	public float distinguish_x, distinguish_y;
+	float fireRange;
+	float gameTick;
+	float distinguish_x, distinguish_y;
 
 	private boolean dragLock = false;
-	private boolean splash = false;
 
 	private Music bgm;
 
@@ -62,47 +61,42 @@ public class BurningTowerScreen extends GameScreen implements Screen {
 	private JsonValue levelData;
 
 	private PyroActor pyro;
+	FireActor fireactor;
 
-	private ObjectDisplayer objectDisplayer;
+	ObjectDisplayer objectDisplayer;
 
-	private class ObjectDisplayer implements Runnable {
+	class ObjectDisplayer implements Runnable {
 
-		private int delay = 0;
-		private ArrayList<Actor> actorList = new ArrayList<Actor>();
-		private Thread timer;
-		private boolean skip = false;
+		int delay = 0;
+		ArrayList<Actor> actorList = new ArrayList<Actor>();
+		Thread timer;
+		boolean skip = false;
 
 		@Override
 		public void run() {
 			for (Actor actor : actorList) {
 
-				if (splash || actor instanceof StoreyObject) {
+				if (actor instanceof StoreyObject) {
 					stage.addActor(actor);
 
 					if (!skip) {
 						try {
 							Thread.sleep(delay);
 						} catch (InterruptedException e) {
-							// TODO Auto-generated catch block
 							e.printStackTrace();
 						}
 					}
 				}
 			}
 
-			if (!splash) {
-				for (Actor actor : actorList) {
-					if (!(actor instanceof StoreyObject)) {
-						stage.addActor(actor);
-					}
+			for (Actor actor : actorList) {
+				if (!(actor instanceof StoreyObject)) {
+					stage.addActor(actor);
 				}
 			}
 
-			if (splash) {
-				startFire();
-			} else {
-				timer.start();
-			}
+			timer.start();
+
 		}
 
 		public void setDelay(int delay) {
@@ -152,6 +146,47 @@ public class BurningTowerScreen extends GameScreen implements Screen {
 		bgm = Gdx.audio.newMusic(Gdx.files.internal("data/audio/fire.ogg"));
 
 		fireTimer = new CountdownTimer(this);
+		objectDisplayer = new ObjectDisplayer();
+	}
+
+	void overrideObjectDisplayer(ObjectDisplayer objectDisplayer) {
+		this.objectDisplayer = objectDisplayer;
+	}
+
+	void drawUI() {
+		final Image fireButton = new Image();
+		fireButton
+				.setDrawable(new TextureRegionDrawable(new TextureRegion(
+						new Texture(Gdx.files
+								.internal("data/image/fire_button.png")))));
+		fireButton.setX(0);
+		fireButton.setY(0);
+
+		fireButton.setWidth(50);
+		fireButton.setHeight(50);
+
+		fireButton.addListener(new DragListener() {
+			@Override
+			public boolean touchDown(InputEvent event, float x, float y,
+					int pointer, int button) {
+				System.out.println("FIRE START");
+
+				self.startFire();
+
+				return true;
+			}
+		});
+
+		stage.addActor(fireButton);
+
+		timerLabel.setPosition(260, 1240);
+		stage.addActor(timerLabel);
+
+		scoreLabel.setPosition(260, 1200);
+		stage.addActor(scoreLabel);
+
+		counterLabel.setPosition(260, 1160);
+		stage.addActor(counterLabel);
 	}
 
 	@Override
@@ -169,8 +204,6 @@ public class BurningTowerScreen extends GameScreen implements Screen {
 	@Override
 	public void show() {
 		super.show();
-
-		objectDisplayer = new ObjectDisplayer();
 
 		Thread objectDisplayerThread = new Thread(objectDisplayer);
 
@@ -238,7 +271,7 @@ public class BurningTowerScreen extends GameScreen implements Screen {
 					object.setProp(objects.get("property").asString());
 
 				if (objects.get("isMovable") == null
-						|| objects.get("isMovable").asBoolean() && (!splash)) {
+						|| objects.get("isMovable").asBoolean()) {
 					object.addListener(new DragListener() {
 						float deltax;
 						float deltay;
@@ -380,7 +413,7 @@ public class BurningTowerScreen extends GameScreen implements Screen {
 			}
 		}
 
-		FireActor fireactor = new FireActor(this);
+		fireactor = new FireActor(this);
 		objectDisplayer.addActor(fireactor);
 
 		pyro = new PyroActor(this);
@@ -390,46 +423,14 @@ public class BurningTowerScreen extends GameScreen implements Screen {
 		pyro.setScale((float) 1.5);
 		objectDisplayer.addActor(pyro);
 
-		final Image fireButton = new Image();
-		fireButton
-				.setDrawable(new TextureRegionDrawable(new TextureRegion(
-						new Texture(Gdx.files
-								.internal("data/image/fire_button.png")))));
-		fireButton.setX(0);
-		fireButton.setY(0);
-
-		fireButton.setWidth(50);
-		fireButton.setHeight(50);
-
-		fireButton.addListener(new DragListener() {
-			@Override
-			public boolean touchDown(InputEvent event, float x, float y,
-					int pointer, int button) {
-				System.out.println("FIRE START");
-
-				self.startFire();
-
-				return true;
-			}
-		});
-
-		stage.addActor(fireButton);
-
 		timerLabel = new Label("PLACEHOLDER", new Label.LabelStyle(bitmapFont,
 				Color.WHITE));
-		timerLabel.setPosition(260, 1240);
-		stage.addActor(timerLabel);
-
 		scoreLabel = new Label("PLACEHOLDER", new Label.LabelStyle(bitmapFont,
 				Color.WHITE));
-		scoreLabel.setPosition(260, 1200);
-
-		stage.addActor(scoreLabel);
-
 		counterLabel = new Label("PLACEHOLDER", new Label.LabelStyle(
 				bitmapFont, Color.WHITE));
-		counterLabel.setPosition(260, 1160);
-		stage.addActor(counterLabel);
+
+		drawUI();
 
 		while (timerThread != null && timerThread.isAlive()) {
 			try {
@@ -474,8 +475,6 @@ public class BurningTowerScreen extends GameScreen implements Screen {
 		if (Gdx.input.justTouched()) {
 			if (!objectDisplayer.getSkip())
 				objectDisplayer.setSkip();
-			else if(splash)
-				game.setScreen(game.gameMain);
 		}
 
 		int notburn = 0;
@@ -524,9 +523,6 @@ public class BurningTowerScreen extends GameScreen implements Screen {
 		int notburn = 0;
 
 		stopBGM();
-
-		if (splash)
-			return;
 
 		for (GameObject obj : gameObjects) {
 			if (!obj.isBurnt()) {
@@ -614,10 +610,6 @@ public class BurningTowerScreen extends GameScreen implements Screen {
 	public void startFire() {
 		pyro.burnIt();
 		fireTimer.setTime(0);
-	}
-
-	public void setSplash() {
-		splash = true;
 	}
 
 	public void setDragLock() {

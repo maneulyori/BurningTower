@@ -22,8 +22,7 @@ public class BurningTower extends Game {
 		levelFile = Gdx.files.internal("data/levelData/level.json");
 
 		gameMain = new BurningTowerScreen(this, "1"); // TODO: get level from user.
-		splash = new BurningTowerScreen(this, "1");
-		splash.setSplash();
+		splash = new SplashScreen(this, "1");
 		
 		scoreScreen = new ScoreScreen(this);
 

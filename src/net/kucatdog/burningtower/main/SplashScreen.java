@@ -1,17 +1,56 @@
 package net.kucatdog.burningtower.main;
 
+import java.util.ArrayList;
+
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
 
-public class SplashScreen extends GameScreen implements Screen {
+public class SplashScreen extends BurningTowerScreen {
 
-	Texture splash;
+	private BurningTower game;
 
-	SplashScreen(BurningTower game) {
-		super(game);
+	class ObjectDisplayer extends BurningTowerScreen.ObjectDisplayer {
 
-		splash = new Texture(Gdx.files.internal("data/image/start.png"));
+		@Override
+		public void run() {
+			for (Actor actor : actorList) {
+
+				stage.addActor(actor);
+
+				if (!skip) {
+					try {
+						Thread.sleep(delay);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
+
+			}
+			startFire();
+
+			displayLogoText();
+		}
+	}
+
+	BitmapFont logoText;
+	ObjectDisplayer objectDisplayer;
+
+	SplashScreen(BurningTower game, String level) {
+		super(game, level);
+		this.game = game;
+
+		objectDisplayer = new ObjectDisplayer();
+		overrideObjectDisplayer(objectDisplayer);
+
+		logoText = new BitmapFont();
+		logoText.scale(10);
+		
+		this.gameTick = 10;
 	}
 
 	@Override
@@ -28,20 +67,21 @@ public class SplashScreen extends GameScreen implements Screen {
 	public void pause() {
 		super.pause();
 	}
+	
+	@Override
+	void drawUI() {
+		//Do NOTHING
+	}
 
 	@Override
 	public void render(float delta) {
+
+		if (Gdx.input.justTouched()) {
+			if (objectDisplayer.getSkip())
+				game.setScreen(game.gameMain);
+		}
+
 		super.render(delta);
-
-		batch.begin();
-
-		batch.draw(splash, 0, 0, Gdx.graphics.getWidth(),
-				Gdx.graphics.getHeight());
-
-		batch.end();
-
-		if (Gdx.input.justTouched()) // use your own criterion here
-			game.setScreen(game.gameMain);
 	}
 
 	@Override
@@ -57,7 +97,33 @@ public class SplashScreen extends GameScreen implements Screen {
 	@Override
 	public void dispose() {
 		super.dispose();
-		splash.dispose();
 	}
 
+	@Override
+	public void stopBurning() {
+		fireactor.setFireForever();
+	}
+
+	private void displayLogoText() {
+		Label label = new Label("Burning\nTower", new Label.LabelStyle(
+				logoText, Color.RED));
+
+		label.setPosition(100, 850);
+		stage.addActor(label);
+	}
+
+	@Override
+	public void playBGM() {
+		
+	}
+
+	@Override
+	public void stopBGM() {
+		
+	}
+
+	@Override
+	public boolean isBGMPlaying() {
+		return false;
+	}
 }
