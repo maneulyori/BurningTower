@@ -115,11 +115,11 @@ public class GameObject extends Image {
 				}
 			} else {
 				exploding = false;
-				//distinguishing = false;
+				// distinguishing = false;
 				gameTick = context.gameTick;
 				cnt = -1;
 			}
-			
+
 			if (distinguishing) {
 				float x1, y1;
 				float x2, y2;
@@ -133,16 +133,15 @@ public class GameObject extends Image {
 					if (obj.equals(this))
 						continue;
 
-					if ((obj.getX() + obj.getWidth() >= x1
-							&& obj.getX() <= x2)
-							|| (obj.getY() + obj.getHeight() >= y1
-							&& obj.getY() <= y2)) {
+					if ((obj.getX() + obj.getWidth() >= x1 && obj.getX() <= x2)
+							|| (obj.getY() + obj.getHeight() >= y1 && obj
+									.getY() <= y2)) {
 						obj.distinguish();
 					}
 				}
-				
+
 				for (StoreyObject obj : context.storeys) {
-					if(obj.getY() >= y1 && obj.getY() <= y2)
+					if (obj.getY() >= y1 && obj.getY() <= y2)
 						obj.distinguish();
 				}
 			}
@@ -186,7 +185,8 @@ public class GameObject extends Image {
 			ashTexture = new Texture(Gdx.files.internal("data/image/"
 					+ objectType + "_burn.png"));
 		else
-			ashTexture = texture;//new Texture(Gdx.files.internal("data/image/ashes.png"));
+			ashTexture = texture;// new
+									// Texture(Gdx.files.internal("data/image/ashes.png"));
 
 		this.ashDrawable = new TextureRegionDrawable(new TextureRegion(
 				ashTexture));
@@ -211,8 +211,22 @@ public class GameObject extends Image {
 				/ context.GRIDPIXELSIZE * context.GRIDPIXELSIZE);
 	}
 
-	public void setPlaceLocation(PlaceLocation location) {
-		this.placeLocation = location;
+	public void setPlaceLocation(String location) {
+		location = location.toLowerCase();
+
+		switch (location) {
+		case "floor":
+			this.placeLocation = PlaceLocation.FLOOR;
+			break;
+		case "ceiling":
+			this.placeLocation = PlaceLocation.CEILING;
+			break;
+		case "wall":
+			this.placeLocation = PlaceLocation.WALL;
+			break;
+		default:
+			System.out.println("Are you sane?");
+		}
 	}
 
 	public void setProp(String prop) {
@@ -273,7 +287,7 @@ public class GameObject extends Image {
 	public boolean isDistinguishing() {
 		return distinguishing;
 	}
-	
+
 	public boolean isLeaveRuin() {
 		return leaveRuin;
 	}
@@ -288,8 +302,10 @@ public class GameObject extends Image {
 		float width = obj.getWidth();
 		float height = obj.getHeight();
 
-		if ((x + width + range > this.getX() && x - range < this.getX() + this.getWidth()
-				&& y + height + range > this.getY() && y - range < this.getY() + this.getHeight()))
+		if ((x + width + range > this.getX()
+				&& x - range < this.getX() + this.getWidth()
+				&& y + height + range > this.getY() && y - range < this.getY()
+				+ this.getHeight()))
 			return true;
 
 		return false;

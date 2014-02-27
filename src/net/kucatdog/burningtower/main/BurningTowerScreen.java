@@ -47,6 +47,8 @@ public class BurningTowerScreen extends GameScreen implements Screen {
 	private Label scoreLabel;
 	private Label timerLabel;
 	private Label counterLabel;
+	private final Image fireButton = new Image();
+	private final Image crosshair = new Image();
 	private int moveCnt;
 
 	CountdownTimer fireTimer;
@@ -92,6 +94,8 @@ public class BurningTowerScreen extends GameScreen implements Screen {
 					stage.addActor(actor);
 				}
 			}
+
+			drawUI();
 
 			timer.start();
 
@@ -150,29 +154,9 @@ public class BurningTowerScreen extends GameScreen implements Screen {
 	}
 
 	void drawUI() {
-		final Image fireButton = new Image();
-		fireButton
-				.setDrawable(new TextureRegionDrawable(new TextureRegion(
-						new Texture(Gdx.files
-								.internal("data/image/fire_button.png")))));
-		fireButton.setX(200);
-		fireButton.setY(1200);
 
-		fireButton.setWidth(50);
-		fireButton.setHeight(50);
-
-		fireButton.addListener(new DragListener() {
-			@Override
-			public boolean touchDown(InputEvent event, float x, float y,
-					int pointer, int button) {
-				System.out.println("FIRE START");
-
-				self.startFire();
-
-				return true;
-			}
-		});
-
+		fireButton.setPosition(200, 1200);
+		fireButton.setSize(50, 50);
 		stage.addActor(fireButton);
 
 		timerLabel.setPosition(260, 1240);
@@ -183,6 +167,12 @@ public class BurningTowerScreen extends GameScreen implements Screen {
 
 		counterLabel.setPosition(260, 1160);
 		stage.addActor(counterLabel);
+
+		crosshair.setSize(64, 64);
+		crosshair.setPosition(64, 64);
+
+		stage.addActor(crosshair);
+
 	}
 
 	@Override
@@ -200,7 +190,7 @@ public class BurningTowerScreen extends GameScreen implements Screen {
 	@Override
 	public void show() {
 		super.show();
-		
+
 		game.stopAllAudio();
 		game.playAudio("gameplay");
 
@@ -226,7 +216,8 @@ public class BurningTowerScreen extends GameScreen implements Screen {
 			storey.setBounds(storeyData.getInt("locationX"), previousHeight,
 					storeyData.getInt("width"), storeyData.getInt("height"));
 
-			previousHeight += storeyData.getInt("height") + storey.getFloorHeight();
+			previousHeight += storeyData.getInt("height")
+					+ storey.getFloorHeight();
 			objectDisplayer.addActor(storey);
 			storeys.add(storey);
 		}
@@ -259,19 +250,21 @@ public class BurningTowerScreen extends GameScreen implements Screen {
 
 				final GameObject object = new GameObject(this);
 
-				object.setObjType(objects.get("type").asString(),
-						objects.get("leaveRuin").asBoolean());
-				object.setResist(objects.get("resist").asInt());
-				object.setX(objects.get("locationX").asFloat());
-				object.setY(objects.get("locationY").asFloat());
-				object.setFlameCnt(objects.get("flammable").asInt());
+				object.setObjType(objects.getString("type"),
+						objects.getBoolean("leaveRuin"));
+				object.setResist(objects.getInt("resist"));
+				object.setX(objects.getFloat("locationX"));
+				object.setY(objects.getFloat("locationY"));
+				object.setFlameCnt(objects.getInt("flammable"));
 
 				if (objects.get("width") != null)
-					object.setWidth(objects.get("width").asInt());
+					object.setWidth(objects.getInt("width"));
 				if (objects.get("height") != null)
-					object.setHeight(objects.get("height").asInt());
+					object.setHeight(objects.getInt("height"));
 				if (objects.get("property") != null)
-					object.setProp(objects.get("property").asString());
+					object.setProp(objects.getString("property"));
+				if (objects.get("placelocation") != null)
+					object.setPlaceLocation(objects.getString("placelocation"));
 
 				if (objects.get("isMovable") == null
 						|| objects.get("isMovable").asBoolean()) {
@@ -409,6 +402,33 @@ public class BurningTowerScreen extends GameScreen implements Screen {
 								return;
 							}
 
+							switch (object.getPlaceLocation()) {
+							case FLOOR:
+								if (Math.abs(thisStorey.getY() - object.getY()) > 5) {
+									System.out
+											.println("You cannot make this object fly!");
+									object.setPosition(original_x, original_y);
+									return;
+								}
+								break;
+							case CEILING:
+								if (Math.abs(thisStorey.getY()
+										+ thisStorey.getHeight()
+										- object.getY() - object.getHeight()) > 5) {
+									System.out
+											.println("You cannot detach this object from ceiling");
+									object.setPosition(original_x, original_y);
+									return;
+								}
+								break;
+							case WALL:
+								// DO NOTHING
+								break;
+							default:
+								System.out.println("Are you sane?");
+
+							}
+
 							moveCnt--;
 						}
 					});
@@ -430,14 +450,91 @@ public class BurningTowerScreen extends GameScreen implements Screen {
 		pyro.setScale((float) 1.5);
 		objectDisplayer.addActor(pyro);
 
+		fireButton
+				.setDrawable(new TextureRegionDrawable(new TextureRegion(
+						new Texture(Gdx.files
+								.internal("data/image/fire_button.png")))));
+
+		fireButton.addListener(new DragListener() {
+
+			@Override
+			public boolean touchDown(InputEvent event, float x, float y,
+					int pointer, int button) {
+				System.out.println("FIRE START");
+
+				self.startFire();
+
+				return true;
+			}
+		});
+
+		crosshair.setDrawable(new TextureRegionDrawable(new TextureRegion(
+				new Texture(Gdx.files.internal("data/image/crosshair.png")))));
+
+		crosshair.addListener(new DragListener() {
+
+			float deltax;
+			float deltay;
+			float firstx;
+			float firsty;
+			float firstgrep_x;
+			float firstgrep_y;
+			float original_x;
+			float original_y;
+
+			@Override
+			public boolean touchDown(InputEvent event, float x, float y,
+					int pointer, int button) {
+
+				deltax = 0;
+				deltay = 0;
+				firstx = crosshair.getX();
+				firsty = crosshair.getY();
+
+				firstgrep_x = x;
+				firstgrep_y = y;
+
+				original_x = firstx;
+				original_y = firsty;
+
+				return true;
+			}
+
+			@Override
+			public void touchDragged(InputEvent event, float x, float y,
+					int pointer) {
+
+				crosshair.setOrigin(Gdx.input.getX(), Gdx.input.getY());
+
+				deltax = x - firstgrep_x;
+				deltay = y - firstgrep_y;
+
+				crosshair.setX(firstx + deltax);
+				firstx = crosshair.getX();
+				crosshair.setY(firsty + deltay);
+				firsty = crosshair.getY();
+			}
+
+			@Override
+			public void touchUp(InputEvent event, float x, float y,
+					int pointer, int button) {
+				if (crosshair.getY() > pyro.getHeight() + pyro.getY()) {
+					crosshair.setPosition(original_x, original_y);
+					return;
+				}
+
+				pyro.setFirePt(crosshair.getX() + crosshair.getWidth() / 2,
+						crosshair.getY() + crosshair.getHeight() / 2);
+			}
+
+		});
+
 		timerLabel = new Label("PLACEHOLDER", new Label.LabelStyle(bitmapFont,
 				Color.WHITE));
 		scoreLabel = new Label("PLACEHOLDER", new Label.LabelStyle(bitmapFont,
 				Color.WHITE));
 		counterLabel = new Label("PLACEHOLDER", new Label.LabelStyle(
 				bitmapFont, Color.WHITE));
-
-		drawUI();
 
 		while (timerThread != null && timerThread.isAlive()) {
 			try {

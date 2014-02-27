@@ -36,10 +36,8 @@ public class FireActor extends Actor {
 				}
 
 				if (obj.isExploding()) {
-					batch.draw(fireToDraw, obj.getX() - context.fireRange,
-							obj.getY() - context.fireRange, obj.getWidth()
-									+ context.fireRange, obj.getHeight()
-									+ context.fireRange);
+					batch.draw(fireToDraw, obj.getX(), obj.getY(),
+							obj.getWidth(), obj.getHeight());
 				}
 			}
 		}

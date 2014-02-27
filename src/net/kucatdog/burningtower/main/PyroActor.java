@@ -43,7 +43,7 @@ public class PyroActor extends Image {
 		else if (this.getX() < 10000)
 			this.setX(this.getX() + deltaTime * 400);
 
-		if (this.getX() <= 70) {
+		if (this.getX() <= fireobj.getX()) {
 			// TODO: Better animation for pyro
 			toggleDirection = true;
 
@@ -61,7 +61,6 @@ public class PyroActor extends Image {
 
 	public void setFirePt(float x, float y) {
 		fireobj.setPosition(x, y);
-		fireobj.setY(y);
 	}
 
 	public void burnIt() {
