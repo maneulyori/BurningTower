@@ -40,6 +40,7 @@ public class GameObject extends Image {
 	private boolean burntFlag = false;
 	private boolean exploding = false;
 	private boolean distinguishing = false;
+	private boolean leaveRuin = false;
 
 	private int prevFlameSpread = 0;
 
@@ -133,15 +134,15 @@ public class GameObject extends Image {
 						continue;
 
 					if ((obj.getX() + obj.getWidth() >= x1
-							|| obj.getX() <= x2)
-							&& (obj.getY() + obj.getHeight() >= y1
-							|| obj.getY() <= y2)) {
+							&& obj.getX() <= x2)
+							|| (obj.getY() + obj.getHeight() >= y1
+							&& obj.getY() <= y2)) {
 						obj.distinguish();
 					}
 				}
 				
 				for (StoreyObject obj : context.storeys) {
-					if(obj.getY() > y1)
+					if(obj.getY() >= y1 && obj.getY() <= y2)
 						obj.distinguish();
 				}
 			}
@@ -175,7 +176,7 @@ public class GameObject extends Image {
 	}
 
 	public void setObjType(String objectType, boolean leaveRuin) {
-
+		this.leaveRuin = leaveRuin;
 		texture = new Texture(Gdx.files.internal("data/image/" + objectType
 				+ ".png"));
 
@@ -271,6 +272,10 @@ public class GameObject extends Image {
 
 	public boolean isDistinguishing() {
 		return distinguishing;
+	}
+	
+	public boolean isLeaveRuin() {
+		return leaveRuin;
 	}
 
 	public void decreaseFlameCnt() {

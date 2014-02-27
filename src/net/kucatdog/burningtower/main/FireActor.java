@@ -21,12 +21,18 @@ public class FireActor extends Actor {
 		super.draw(batch, alpha);
 
 		for (GameObject obj : context.gameObjects) {
-			if (obj.isBurning() || setFireForever) {
+			if (obj.isBurning() || setFireForever || !obj.isLeaveRuin()) {
 
 				for (FirePoint pt : obj.firepts) {
 					fireToDraw = context.fire[(int) ((pt.time * 250 + deltaTime) * 1000)
 							/ 500 % context.fire.length];
-					batch.draw(fireToDraw, pt.x, pt.y);
+
+					if (obj.isBurning() || setFireForever)
+						batch.draw(fireToDraw, pt.x, pt.y);
+					else
+						batch.draw(fireToDraw, pt.x, pt.y,
+								fireToDraw.getWidth() / 2,
+								fireToDraw.getHeight() / 2);
 				}
 
 				if (obj.isExploding()) {

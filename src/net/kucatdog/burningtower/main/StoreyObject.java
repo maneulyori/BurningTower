@@ -78,7 +78,8 @@ public class StoreyObject extends Actor {
 						if (flameCnt <= 0) {
 							fireFlag = true;
 							fire_start = (int) obj.getX();
-							fire_end = (int) obj.getX() + floorFire_draw.getWidth();
+							fire_end = (int) obj.getX()
+									+ floorFire_draw.getWidth();
 							break;
 						}
 					}
@@ -123,12 +124,14 @@ public class StoreyObject extends Actor {
 	public void draw(Batch batch, float alpha) {
 		super.draw(batch, alpha);
 
-		batch.draw(wall_right, this.getX() + this.getWidth(), this.getY(),
-				wall_right.getWidth(), this.getHeight(), 0, this.getHeight()
-						/ wall_right.getHeight(), 1, 0);
-		batch.draw(wall_left, this.getX() - wall_right.getWidth(), this.getY(),
-				wall_left.getWidth(), this.getHeight(), 0, this.getHeight()
-						/ wall_left.getHeight(), 1, 0);
+		batch.draw(wall_right, this.getX() + this.getWidth(), this.getY()
+				- floor.getHeight(), wall_right.getWidth(), this.getHeight()
+				+ floor.getHeight(), 0,
+				this.getHeight() / wall_right.getHeight(), 1, 0);
+		batch.draw(wall_left, this.getX() - wall_right.getWidth(), this.getY()
+				- floor.getHeight(), wall_left.getWidth(), this.getHeight()
+				+ floor.getHeight(), 0,
+				this.getHeight() / wall_left.getHeight(), 1, 0);
 		batch.draw(wall_back, this.getX(), this.getY(), this.getWidth(),
 				this.getHeight(), 0, this.getHeight() / wall_back.getHeight(),
 				this.getWidth() / wall_back.getWidth(), 0);
@@ -137,9 +140,11 @@ public class StoreyObject extends Actor {
 						/ floor.getWidth(), 0);
 
 		if (fireFlag || context.fireactor.getFireForever()) {
-			batch.draw(floorFire_draw, fire_start, this.getY(), fire_end - floorFire_draw.getWidth()
-					- fire_start, floorFire_draw.getHeight(), 0, 1,
-					(fire_end - floorFire_draw.getWidth() - fire_start) / floorFire_draw.getWidth(), 0);
+			batch.draw(floorFire_draw, fire_start, this.getY(), fire_end
+					- floorFire_draw.getWidth() - fire_start,
+					floorFire_draw.getHeight(), 0, 1, (fire_end
+							- floorFire_draw.getWidth() - fire_start)
+							/ floorFire_draw.getWidth(), 0);
 		}
 	}
 
@@ -150,15 +155,19 @@ public class StoreyObject extends Actor {
 	public boolean isBurnt() {
 		return resist <= 0;
 	}
-	
+
 	public void setResist(int resist) {
 		this.resist = resist;
 	}
-	
+
 	public void setFlammable(int flammable) {
 		this.flameCnt = flammable;
 	}
 	
+	public int getFloorHeight() {
+		return floor.getHeight();
+	}
+
 	public void distinguish() {
 		this.fireFlag = false;
 	}

@@ -155,8 +155,8 @@ public class BurningTowerScreen extends GameScreen implements Screen {
 				.setDrawable(new TextureRegionDrawable(new TextureRegion(
 						new Texture(Gdx.files
 								.internal("data/image/fire_button.png")))));
-		fireButton.setX(0);
-		fireButton.setY(0);
+		fireButton.setX(200);
+		fireButton.setY(1200);
 
 		fireButton.setWidth(50);
 		fireButton.setHeight(50);
@@ -200,6 +200,9 @@ public class BurningTowerScreen extends GameScreen implements Screen {
 	@Override
 	public void show() {
 		super.show();
+		
+		game.stopAllAudio();
+		game.playAudio("gameplay");
 
 		Thread objectDisplayerThread = new Thread(objectDisplayer);
 
@@ -223,7 +226,7 @@ public class BurningTowerScreen extends GameScreen implements Screen {
 			storey.setBounds(storeyData.getInt("locationX"), previousHeight,
 					storeyData.getInt("width"), storeyData.getInt("height"));
 
-			previousHeight += storeyData.getInt("height");
+			previousHeight += storeyData.getInt("height") + storey.getFloorHeight();
 			objectDisplayer.addActor(storey);
 			storeys.add(storey);
 		}
