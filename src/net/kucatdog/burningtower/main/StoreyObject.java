@@ -18,6 +18,7 @@ public class StoreyObject extends Actor {
 	private Texture floorFire_draw;
 
 	private float deltaTime = 0;
+	private float deltaTime_consist = 0;
 	private int cnt = 0;
 	private int fire_start = -1, fire_end = -1;
 
@@ -58,6 +59,9 @@ public class StoreyObject extends Actor {
 	public void act(float delta) {
 
 		deltaTime += delta;
+		deltaTime_consist += delta;
+
+		floorFire_draw = floorFire[((int) (deltaTime_consist * 1000) / 500 % floorFire.length)];
 
 		if (deltaTime > gameTick / 1000.0) {
 			deltaTime = 0;
@@ -75,7 +79,7 @@ public class StoreyObject extends Actor {
 						if (flameCnt <= 0) {
 							fireFlag = true;
 							fire_start = (int) obj.getX();
-							fire_end = (int) obj.getX();
+							fire_end = (int) obj.getX() + floorFire_draw.getWidth();
 							break;
 						}
 					}
@@ -105,7 +109,7 @@ public class StoreyObject extends Actor {
 				if (cnt >= 20) {
 					cnt = 0;
 
-					if (fire_start > this.getX()) {
+					if (fire_start - floorFire[0].getWidth() > this.getX()) {
 						fire_start -= floorFire[0].getWidth();
 					}
 					if (fire_end < this.getX() + this.getWidth()) {
@@ -134,9 +138,9 @@ public class StoreyObject extends Actor {
 						/ floor.getWidth(), 0);
 
 		if (fireFlag) {
-			batch.draw(floorFire_draw, fire_start, this.getY(), fire_end
+			batch.draw(floorFire_draw, fire_start, this.getY(), fire_end - floorFire_draw.getWidth()
 					- fire_start, floorFire_draw.getHeight(), 0, 1,
-					(fire_end - fire_start) / floorFire_draw.getWidth(), 0);
+					(fire_end - floorFire_draw.getWidth() - fire_start) / floorFire_draw.getWidth(), 0);
 		}
 	}
 

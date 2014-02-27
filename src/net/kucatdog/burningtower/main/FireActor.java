@@ -9,9 +9,12 @@ public class FireActor extends Actor {
 
 	private BurningTowerScreen context;
 	private boolean setFireForever = false;
+	Texture fireToDraw;
+	private float deltaTime = 0;
 
 	public FireActor(BurningTowerScreen context) {
 		this.context = context;
+		fireToDraw = context.fire[0];
 	}
 
 	@Override
@@ -20,7 +23,6 @@ public class FireActor extends Actor {
 
 		for (GameObject obj : context.gameObjects) {
 			if (obj.isBurning() || setFireForever) {
-				Texture fireToDraw = context.fire[(int) (TimeUtils.millis() / 500 % context.fire.length)];
 
 				for (Point pt : obj.firepts) {
 					batch.draw(fireToDraw, pt.x, pt.y);
@@ -37,9 +39,11 @@ public class FireActor extends Actor {
 	}
 
 	@Override
-	public void act(float deltaTime) {
+	public void act(float delta) {
+		deltaTime += delta;
+		fireToDraw = context.fire[(int) (deltaTime * 1000) / 500 % context.fire.length];
 	}
-	
+
 	public void setFireForever() {
 		setFireForever = true;
 	}

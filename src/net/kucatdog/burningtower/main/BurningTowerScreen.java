@@ -486,16 +486,6 @@ public class BurningTowerScreen extends GameScreen implements Screen {
 			}
 		}
 
-		for (StoreyObject obj : storeys) {
-			if (obj.isBurning()) {
-				isBurning = true;
-			}
-
-			if (!obj.isBurnt()) {
-				notburn++;
-			}
-		}
-
 		if ((!isBurning) && dragLock) {
 			dragLock = false;
 			this.stopBurning();
@@ -503,9 +493,8 @@ public class BurningTowerScreen extends GameScreen implements Screen {
 
 		if (gameObjects.size != 0) {
 			timerLabel.setText(fireTimer.getTimerStr());
-			scoreLabel.setText("Burnt " + 100
-					* (gameObjects.size + storeys.size - notburn)
-					/ (gameObjects.size + storeys.size - 1) + "%");
+			scoreLabel.setText("Burnt " + 100 * (gameObjects.size - notburn)
+					/ gameObjects.size + "%");
 			counterLabel.setText(moveCnt + " moves left.");
 		}
 	}
@@ -517,25 +506,19 @@ public class BurningTowerScreen extends GameScreen implements Screen {
 
 	public void stopBurning() {
 		int notburn = 0;
-		
+
 		game.stopAudio("fire");
 		game.playAudio("gameplay");
 
 		for (GameObject obj : gameObjects) {
-			if (!obj.isBurnt()) {
+			if (!obj.isBurnt()
+					&& obj.getProp() != GameObject.ObjectProp.DISTINGUISHER) {
 				notburn++;
 			}
 		}
 
-		for (StoreyObject obj : storeys) {
-			if (!obj.isBurnt()) {
-				notburn++;
-			}
-		}
-
-		game.scoreScreen.setScore(100
-				* (gameObjects.size + storeys.size - notburn)
-				/ (gameObjects.size + storeys.size - 1));
+		game.scoreScreen.setScore(100 * (gameObjects.size - notburn)
+				/ gameObjects.size);
 
 		final int score = 100 * (gameObjects.size + storeys.size - notburn)
 				/ (gameObjects.size + storeys.size - 1);
@@ -586,7 +569,7 @@ public class BurningTowerScreen extends GameScreen implements Screen {
 			}
 		}, 2000, TimeUnit.MILLISECONDS);
 	}
-	
+
 	public void startFire() {
 		pyro.burnIt();
 		fireTimer.setTime(0);

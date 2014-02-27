@@ -242,7 +242,7 @@ public class GameObject extends Image {
 		return objectType;
 	}
 
-	public ObjectProp getObjectProp() {
+	public ObjectProp getProp() {
 		return objectProp;
 	}
 
