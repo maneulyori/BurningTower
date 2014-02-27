@@ -6,7 +6,7 @@ import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.files.FileHandle;
 
 public class MainMenu extends Game {
-
+	
 	BurningTower gameMain;
 	SplashScreen splash;
 	ScoreScreen scoreScreen;

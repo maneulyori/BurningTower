@@ -17,6 +17,7 @@ import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.ui.Window;
 import com.badlogic.gdx.scenes.scene2d.utils.DragListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Array;
@@ -29,23 +30,24 @@ public class BurningTower extends GameScreen implements Screen {
 
 	public Texture[] fire = new Texture[2];
 
-	public final int GRIDPIXELSIZE = 40;
+	public final int GRIDPIXELSIZE = 32;
 	// TODO: Read it from config file
 
 	public float fireRange;
 	public float gameTick;
 	public float distinguish_x, distinguish_y;
 
-	public static boolean dragLock = false;
+	public boolean dragLock = false;
 
 	private Music bgm;
 
 	private int level;
 
-	private BitmapFont scoreFont;
-	private BitmapFont timerFont;
+	private BitmapFont bitmapFont;
 	private Label scoreLabel;
 	private Label timerLabel;
+	private Label counterLabel;
+	private int moveCnt;
 
 	private CountdownTimer fireTimer;
 	private Thread timerThread;
@@ -53,6 +55,7 @@ public class BurningTower extends GameScreen implements Screen {
 	public Array<GameObject> gameObjects = new Array<GameObject>();
 	private Array<StoreyObject> storeys = new Array<StoreyObject>();
 
+	private JsonValue jsonData;
 	private JsonValue levelData;
 
 	private PyroActor pyro;
@@ -64,17 +67,17 @@ public class BurningTower extends GameScreen implements Screen {
 
 		Texture.setEnforcePotImages(false);
 
-		levelData = new JsonReader().parse(game.levelFile);
+		jsonData = new JsonReader().parse(game.levelFile);
 
-		fireRange = levelData.get("defaultRange").asFloat();
-		gameTick = levelData.get("gameTick").asFloat();
-		distinguish_x = levelData.getFloat("distinguish_x");
-		distinguish_y = levelData.getFloat("distinguish_y");
+		fireRange = jsonData.get("defaultRange").asFloat();
+		gameTick = jsonData.get("gameTick").asFloat();
+		distinguish_x = jsonData.getFloat("distinguish_x");
+		distinguish_y = jsonData.getFloat("distinguish_y");
 
-		System.out.println(levelData); // print parsed level.json
+		System.out.println(jsonData); // print parsed level.json
 
-		scoreFont = new BitmapFont();
-		timerFont = new BitmapFont();
+		bitmapFont = new BitmapFont();
+		bitmapFont.setScale(2);
 
 		for (int i = 0; i < fire.length; i++)
 			fire[i] = new Texture(Gdx.files.internal("data/image/fire"
@@ -90,8 +93,7 @@ public class BurningTower extends GameScreen implements Screen {
 		super.dispose();
 		gameObjects.clear();
 		storeys.clear();
-		scoreFont.dispose();
-		timerFont.dispose();
+		bitmapFont.dispose();
 
 		for (int i = 0; i < fire.length; i++) {
 			fire[i].dispose();
@@ -102,8 +104,10 @@ public class BurningTower extends GameScreen implements Screen {
 	public void show() {
 		super.show();
 
-		Iterator<JsonValue> levelIterator = levelData.get(
-				Integer.toString(level)).iterator();
+		levelData = jsonData.get(Integer.toString(level));
+		Iterator<JsonValue> levelIterator = levelData.iterator();
+
+		moveCnt = levelData.getInt("moveCount");
 
 		StoreyObject storey = new StoreyObject(this);
 		storey.setBounds(60, 10, 600, 250);
@@ -143,143 +147,165 @@ public class BurningTower extends GameScreen implements Screen {
 		while (levelIterator.hasNext()) {
 			JsonValue objects = levelIterator.next();
 
-			final GameObject object = new GameObject(this);
+			if (objects.name.startsWith("object")) {
 
-			object.setObjType(objects.get("type").asString(),
-					objects.get("leaveRuin").asBoolean());
-			object.setResist(objects.get("resist").asInt());
-			object.setX(objects.get("locationX").asFloat());
-			object.setY(objects.get("locationY").asFloat());
-			object.setFlameCnt(objects.get("flammable").asInt());
+				final GameObject object = new GameObject(this);
 
-			if (objects.get("width") != null)
-				object.setWidth(objects.get("width").asInt());
-			if (objects.get("height") != null)
-				object.setHeight(objects.get("height").asInt());
-			if (objects.get("property") != null)
-				object.setProp(objects.get("property").asString());
+				object.setObjType(objects.get("type").asString(),
+						objects.get("leaveRuin").asBoolean());
+				object.setResist(objects.get("resist").asInt());
+				object.setX(objects.get("locationX").asFloat());
+				object.setY(objects.get("locationY").asFloat());
+				object.setFlameCnt(objects.get("flammable").asInt());
 
-			if (objects.get("isMovable") == null
-					|| objects.get("isMovable").asBoolean()) {
-				object.addListener(new DragListener() {
-					float deltax;
-					float deltay;
-					float firstx;
-					float firsty;
-					float firstgrep_x;
-					float firstgrep_y;
-					float original_x;
-					float original_y;
+				if (objects.get("width") != null)
+					object.setWidth(objects.get("width").asInt());
+				if (objects.get("height") != null)
+					object.setHeight(objects.get("height").asInt());
+				if (objects.get("property") != null)
+					object.setProp(objects.get("property").asString());
 
-					StoreyObject thisStorey = null;
+				if (objects.get("isMovable") == null
+						|| objects.get("isMovable").asBoolean()) {
+					object.addListener(new DragListener() {
+						float deltax;
+						float deltay;
+						float firstx;
+						float firsty;
+						float firstgrep_x;
+						float firstgrep_y;
+						float original_x;
+						float original_y;
 
-					@Override
-					public boolean touchDown(InputEvent event, float x,
-							float y, int pointer, int button) {
-						System.out.println("CLICK");
+						StoreyObject thisStorey = null;
 
-						for (StoreyObject obj : storeys) {
-							if (object.getX() + object.getWidth() > obj.getX()
-									&& object.getX() < obj.getX()
-											+ obj.getWidth()
-									&& object.getY() + object.getHeight() > obj
-											.getY()
-									&& object.getY() < obj.getY()
-											+ obj.getHeight()) {
-								thisStorey = obj;
-								System.out.println(thisStorey.toString());
-								break;
+						@Override
+						public boolean touchDown(InputEvent event, float x,
+								float y, int pointer, int button) {
+							System.out.println("CLICK");
+
+							for (StoreyObject obj : storeys) {
+								if (object.getX() + object.getWidth() > obj
+										.getX()
+										&& object.getX() < obj.getX()
+												+ obj.getWidth()
+										&& object.getY() + object.getHeight() > obj
+												.getY()
+										&& object.getY() < obj.getY()
+												+ obj.getHeight()) {
+									thisStorey = obj;
+									System.out.println(thisStorey.toString());
+									break;
+								}
+							}
+
+							object.setX((int) (object.getX() - thisStorey
+									.getX())
+									/ GRIDPIXELSIZE
+									* GRIDPIXELSIZE
+									+ thisStorey.getX());
+							object.setY((int) (object.getY() - thisStorey
+									.getY())
+									/ GRIDPIXELSIZE
+									* GRIDPIXELSIZE
+									+ thisStorey.getY());
+
+							deltax = 0;
+							deltay = 0;
+							firstx = object.getX();
+							firsty = object.getY();
+
+							firstgrep_x = x;
+							firstgrep_y = y;
+
+							original_x = firstx;
+							original_y = firsty;
+
+							if (moveCnt <= 0)
+								return false;
+
+							if (!dragLock)
+								return true;
+							else
+								return false;
+						}
+
+						@Override
+						public void touchDragged(InputEvent event, float x,
+								float y, int pointer) {
+
+							if (!dragLock) {
+								object.setOrigin(Gdx.input.getX(),
+										Gdx.input.getY());
+
+								deltax = x - firstgrep_x;
+								deltay = y - firstgrep_y;
+
+								if (Math.abs(deltax) >= 40) {
+									object.setX(firstx + (int) deltax
+											/ GRIDPIXELSIZE * GRIDPIXELSIZE);
+
+									firstx = object.getX();
+								}
+
+								if (Math.abs(deltay) >= 40) {
+
+									object.setY(firsty + (int) deltay
+											/ GRIDPIXELSIZE * GRIDPIXELSIZE);
+
+									firsty = object.getY();
+								}
 							}
 						}
 
-						object.setX((int) (object.getX() - thisStorey.getX())
-								/ GRIDPIXELSIZE * GRIDPIXELSIZE
-								+ thisStorey.getX());
-						object.setY((int) (object.getY() - thisStorey.getY())
-								/ GRIDPIXELSIZE * GRIDPIXELSIZE
-								+ thisStorey.getY());
+						@Override
+						public void touchUp(InputEvent event, float x, float y,
+								int pointer, int button) {
+							// Check object collapses.
 
-						deltax = 0;
-						deltay = 0;
-						firstx = object.getX();
-						firsty = object.getY();
+							for (GameObject obj : gameObjects) {
 
-						firstgrep_x = x;
-						firstgrep_y = y;
+								if (obj.equals(object))
+									continue;
 
-						original_x = firstx;
-						original_y = firsty;
+								if (object.getX() + object.getWidth() > obj
+										.getX()
+										&& object.getX() < obj.getX()
+												+ obj.getWidth()
+										&& object.getY() + object.getHeight() > obj
+												.getY()
+										&& object.getY() < obj.getY()
+												+ obj.getHeight()) {
+									System.out.println("COLLIDE! with "
+											+ obj.getObjectType());
+									object.setPosition(original_x, original_y);
 
-						return true;
-					}
-
-					@Override
-					public void touchDragged(InputEvent event, float x,
-							float y, int pointer) {
-
-						if (!BurningTower.dragLock) {
-							object.setOrigin(Gdx.input.getX(), Gdx.input.getY());
-
-							deltax = x - firstgrep_x;
-							deltay = y - firstgrep_y;
-
-							if (Math.abs(deltax) >= 40) {
-								object.setX(firstx + (int) deltax
-										/ GRIDPIXELSIZE * GRIDPIXELSIZE);
-
-								firstx = object.getX();
+									return;
+								}
 							}
 
-							if (Math.abs(deltay) >= 40) {
-
-								object.setY(firsty + (int) deltay
-										/ GRIDPIXELSIZE * GRIDPIXELSIZE);
-
-								firsty = object.getY();
-							}
-						}
-					}
-
-					@Override
-					public void touchUp(InputEvent event, float x, float y,
-							int pointer, int button) {
-						// Check object collapses.
-
-						for (GameObject obj : gameObjects) {
-
-							if (obj.equals(object))
-								continue;
-
-							if (object.getX() + object.getWidth() > obj.getX()
-									&& object.getX() < obj.getX()
-											+ obj.getWidth()
-									&& object.getY() + object.getHeight() > obj
-											.getY()
-									&& object.getY() < obj.getY()
-											+ obj.getHeight()) {
-								System.out.println("COLLIDE! with "
-										+ obj.getObjectType());
+							if (!(object.getX() + object.getWidth() > thisStorey
+									.getX()
+									&& object.getX() < thisStorey.getX()
+											+ thisStorey.getWidth()
+									&& object.getY() + object.getHeight() > thisStorey
+											.getY() && object.getY() < thisStorey
+									.getY() + thisStorey.getHeight())) {
+								System.out.println("You cannot leave storey!");
 								object.setPosition(original_x, original_y);
+
+								return;
 							}
-						}
 
-						if (!(object.getX() + object.getWidth() > thisStorey
-								.getX()
-								&& object.getX() < thisStorey.getX()
-										+ thisStorey.getWidth()
-								&& object.getY() + object.getHeight() > thisStorey
-										.getY() && object.getY() < thisStorey
-								.getY() + thisStorey.getHeight())) {
-							System.out.println("You cannot leave storey!");
-							object.setPosition(original_x, original_y);
+							moveCnt--;
 						}
-					}
-				});
+					});
+				}
+
+				stage.addActor(object);
+				gameObjects.add(object);
+
 			}
-
-			stage.addActor(object);
-			gameObjects.add(object);
-
 		}
 
 		FireActor fireactor = new FireActor(this);
@@ -317,18 +343,21 @@ public class BurningTower extends GameScreen implements Screen {
 
 		stage.addActor(fireButton);
 
-		timerFont.setScale(2);
-		scoreFont.setScale(2);
-
-		timerLabel = new Label("Aiya, ambar!", new Label.LabelStyle(timerFont,
+		timerLabel = new Label("PLACEHOLDER", new Label.LabelStyle(bitmapFont,
 				Color.WHITE));
 		timerLabel.setPosition(260, 1240);
 		stage.addActor(timerLabel);
 
-		scoreLabel = new Label("Aiya, ambar!", new Label.LabelStyle(scoreFont,
+		scoreLabel = new Label("PLACEHOLDER", new Label.LabelStyle(bitmapFont,
 				Color.WHITE));
 		scoreLabel.setPosition(260, 1200);
+
 		stage.addActor(scoreLabel);
+
+		counterLabel = new Label("PLACEHOLDER", new Label.LabelStyle(
+				bitmapFont, Color.WHITE));
+		counterLabel.setPosition(260, 1160);
+		stage.addActor(counterLabel);
 
 		while (timerThread != null && timerThread.isAlive()) {
 			try {
@@ -402,6 +431,7 @@ public class BurningTower extends GameScreen implements Screen {
 			scoreLabel.setText("Burnt " + 100
 					* (gameObjects.size + storeys.size - notburn)
 					/ (gameObjects.size + storeys.size - 1) + "%");
+			counterLabel.setText(moveCnt + " moves left.");
 		}
 	}
 
@@ -431,14 +461,56 @@ public class BurningTower extends GameScreen implements Screen {
 				* (gameObjects.size + storeys.size - notburn)
 				/ (gameObjects.size + storeys.size - 1));
 
+		final int score = 100 * (gameObjects.size + storeys.size - notburn)
+				/ (gameObjects.size + storeys.size - 1);
+
 		ScheduledExecutorService worker = Executors
 				.newSingleThreadScheduledExecutor();
+
+		final Texture windowBg = new Texture(
+				Gdx.files.internal("data/image/window_bg.png"));
 
 		worker.schedule(new Runnable() {
 
 			@Override
 			public void run() {
-				game.setScreen(game.scoreScreen);
+				Window.WindowStyle windowstyle = new Window.WindowStyle();
+				windowstyle.background = new TextureRegionDrawable(
+						new TextureRegion(windowBg));
+				windowstyle.titleFont = bitmapFont;
+				windowstyle.titleFontColor = Color.BLACK;
+				Window window = new Window("Game completed!", windowstyle);
+
+				window.padTop(30);
+
+				window.setPosition(200, VIRTUAL_HEIGHT / 2);
+
+				Label label = new Label(score
+						+ "% burned.\nTouch to go main screen",
+						new Label.LabelStyle(bitmapFont, Color.BLACK));
+
+				window.add(label);
+
+				window.pack();
+
+				window.addListener(new DragListener() {
+					@Override
+					public boolean touchDown(InputEvent event, float x,
+							float y, int pointer, int button) {
+						game.setScreen(game.scoreScreen);
+
+						return true;
+					}
+				});
+
+				System.out.println(window.getWidth());
+
+				window.setPosition((VIRTUAL_WIDTH - window.getWidth()) / 2,
+						VIRTUAL_HEIGHT / 2);
+
+				System.out.println(window.getX());
+
+				stage.addActor(window);
 
 			}
 		}, 2000, TimeUnit.MILLISECONDS);

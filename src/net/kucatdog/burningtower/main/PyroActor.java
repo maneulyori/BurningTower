@@ -52,7 +52,7 @@ public class PyroActor extends Image {
 					obj.setFire();
 				}
 			}
-			BurningTower.dragLock = true;
+			context.dragLock = true;
 			context.playBGM();
 		}
 	}
