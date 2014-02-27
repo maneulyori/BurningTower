@@ -1,6 +1,7 @@
 package net.kucatdog.burningtower.main;
 
-public class Point {
+public class FirePoint {
 	int x;
 	int y;
+	float time;
 }

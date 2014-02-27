@@ -136,7 +136,7 @@ public class StoreyObject extends Actor {
 				this.getWidth(), floor.getHeight(), 0, 1, this.getWidth()
 						/ floor.getWidth(), 0);
 
-		if (fireFlag) {
+		if (fireFlag || context.fireactor.getFireForever()) {
 			batch.draw(floorFire_draw, fire_start, this.getY(), fire_end - floorFire_draw.getWidth()
 					- fire_start, floorFire_draw.getHeight(), 0, 1,
 					(fire_end - floorFire_draw.getWidth() - fire_start) / floorFire_draw.getWidth(), 0);

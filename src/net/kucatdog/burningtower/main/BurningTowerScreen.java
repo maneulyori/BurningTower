@@ -458,6 +458,7 @@ public class BurningTowerScreen extends GameScreen implements Screen {
 		fireTimer.terminate(); // Terminate fire timer.
 		gameObjects.clear();
 		storeys.clear();
+		objectDisplayer.actorList.clear();
 	}
 
 	@Override

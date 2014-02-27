@@ -3,7 +3,6 @@ package net.kucatdog.burningtower.main;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.scenes.scene2d.Actor;
-import com.badlogic.gdx.utils.TimeUtils;
 
 public class FireActor extends Actor {
 
@@ -24,7 +23,9 @@ public class FireActor extends Actor {
 		for (GameObject obj : context.gameObjects) {
 			if (obj.isBurning() || setFireForever) {
 
-				for (Point pt : obj.firepts) {
+				for (FirePoint pt : obj.firepts) {
+					fireToDraw = context.fire[(int) ((pt.time * 250 + deltaTime) * 1000)
+							/ 500 % context.fire.length];
 					batch.draw(fireToDraw, pt.x, pt.y);
 				}
 
@@ -41,10 +42,13 @@ public class FireActor extends Actor {
 	@Override
 	public void act(float delta) {
 		deltaTime += delta;
-		fireToDraw = context.fire[(int) (deltaTime * 1000) / 500 % context.fire.length];
 	}
 
 	public void setFireForever() {
 		setFireForever = true;
+	}
+
+	public boolean getFireForever() {
+		return setFireForever;
 	}
 }

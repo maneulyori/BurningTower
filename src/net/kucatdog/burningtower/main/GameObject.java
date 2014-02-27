@@ -47,7 +47,7 @@ public class GameObject extends Image {
 	int cnt = 0;
 	private float gameTick;
 
-	public ArrayList<Point> firepts = new ArrayList<Point>();
+	public ArrayList<FirePoint> firepts = new ArrayList<FirePoint>();
 
 	public GameObject(BurningTowerScreen context) {
 		this.context = context;
@@ -79,9 +79,10 @@ public class GameObject extends Image {
 		if (this.burningFlag && this.flameSpread / 20 != prevFlameSpread
 				&& objectProp != ObjectProp.DISTINGUISHER) {
 			prevFlameSpread = this.flameSpread / 20;
-			Point p = new Point();
+			FirePoint p = new FirePoint();
 			p.x = (int) (this.getX() + Math.random() * this.getWidth());
 			p.y = (int) (this.getY() + Math.random() * this.getHeight());
+			p.time = deltaTime;
 
 			firepts.add(p);
 		}
