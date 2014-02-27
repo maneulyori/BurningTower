@@ -66,7 +66,9 @@ public class StoreyObject extends Actor {
 			if (fire_start == -1 && fire_end == -1) {
 				for (GameObject obj : context.gameObjects) {
 
-					if (obj.getY() + context.fireRange <= this.getY()
+					if (obj.getY() + obj.getHeight() + context.fireRange >= this
+							.getY()
+							&& obj.getY() <= this.getY()
 							&& obj.isBurning()) {
 						this.flameCnt--;
 
