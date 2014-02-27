@@ -103,6 +103,12 @@ public class SplashScreen extends BurningTowerScreen {
 	public void stopBurning() {
 		fireactor.setFireForever();
 	}
+	
+	@Override
+	public void startFire() {
+		pyro.burnIt();
+		fireTimer.setTime(0);
+	}
 
 	private void displayLogoText() {
 		Label label = new Label("Burning\nTower", new Label.LabelStyle(
@@ -110,20 +116,5 @@ public class SplashScreen extends BurningTowerScreen {
 
 		label.setPosition(100, 850);
 		stage.addActor(label);
-	}
-
-	@Override
-	public void playBGM() {
-		
-	}
-
-	@Override
-	public void stopBGM() {
-		
-	}
-
-	@Override
-	public boolean isBGMPlaying() {
-		return false;
 	}
 }

@@ -8,7 +8,6 @@ import java.util.concurrent.TimeUnit;
 
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
@@ -19,6 +18,7 @@ import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Window;
+import com.badlogic.gdx.scenes.scene2d.ui.Window.WindowStyle;
 import com.badlogic.gdx.scenes.scene2d.utils.DragListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.scenes.scene2d.utils.TiledDrawable;
@@ -41,8 +41,6 @@ public class BurningTowerScreen extends GameScreen implements Screen {
 
 	private boolean dragLock = false;
 
-	private Music bgm;
-
 	private String level;
 
 	private BitmapFont bitmapFont;
@@ -51,7 +49,7 @@ public class BurningTowerScreen extends GameScreen implements Screen {
 	private Label counterLabel;
 	private int moveCnt;
 
-	private CountdownTimer fireTimer;
+	CountdownTimer fireTimer;
 	private Thread timerThread;
 
 	public Array<GameObject> gameObjects = new Array<GameObject>();
@@ -60,7 +58,7 @@ public class BurningTowerScreen extends GameScreen implements Screen {
 	private JsonValue jsonData;
 	private JsonValue levelData;
 
-	private PyroActor pyro;
+	PyroActor pyro;
 	FireActor fireactor;
 
 	ObjectDisplayer objectDisplayer;
@@ -142,8 +140,6 @@ public class BurningTowerScreen extends GameScreen implements Screen {
 		for (int i = 0; i < fire.length; i++)
 			fire[i] = new Texture(Gdx.files.internal("data/image/fire"
 					+ (i + 1) + ".png"));
-
-		bgm = Gdx.audio.newMusic(Gdx.files.internal("data/audio/fire.ogg"));
 
 		fireTimer = new CountdownTimer(this);
 		objectDisplayer = new ObjectDisplayer();
@@ -521,8 +517,9 @@ public class BurningTowerScreen extends GameScreen implements Screen {
 
 	public void stopBurning() {
 		int notburn = 0;
-
-		stopBGM();
+		
+		game.stopAudio("fire");
+		game.playAudio("gameplay");
 
 		for (GameObject obj : gameObjects) {
 			if (!obj.isBurnt()) {
@@ -553,7 +550,7 @@ public class BurningTowerScreen extends GameScreen implements Screen {
 
 			@Override
 			public void run() {
-				Window.WindowStyle windowstyle = new Window.WindowStyle();
+				WindowStyle windowstyle = new Window.WindowStyle();
 				windowstyle.background = new TiledDrawable(new TextureRegion(
 						windowBg));
 				windowstyle.titleFont = bitmapFont;
@@ -593,20 +590,7 @@ public class BurningTowerScreen extends GameScreen implements Screen {
 			}
 		}, 2000, TimeUnit.MILLISECONDS);
 	}
-
-	public void playBGM() {
-		bgm.setLooping(true);
-		bgm.play();
-	}
-
-	public void stopBGM() {
-		bgm.stop();
-	}
-
-	public boolean isBGMPlaying() {
-		return bgm.isPlaying();
-	}
-
+	
 	public void startFire() {
 		pyro.burnIt();
 		fireTimer.setTime(0);

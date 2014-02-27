@@ -53,7 +53,10 @@ public class PyroActor extends Image {
 				}
 			}
 			context.setDragLock();
-			context.playBGM();
+			if(!(context instanceof SplashScreen)) {
+				context.game.pauseAllAudio();
+				context.game.playAudio("fire");
+			}
 		}
 	}
 
