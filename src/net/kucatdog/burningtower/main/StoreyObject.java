@@ -29,6 +29,7 @@ public class StoreyObject extends Actor {
 	// TODO: Read it from config
 	private int flameCnt = 100;
 	private int resist = 100;
+	private float gameTick;
 
 	StoreyObject(BurningTower context) {
 		this.context = context;
@@ -39,6 +40,8 @@ public class StoreyObject extends Actor {
 							+ ".png"));
 			floorFire[i].setWrap(TextureWrap.Repeat, TextureWrap.Repeat);
 		}
+		
+		gameTick = context.gameTick;
 
 		floorFire_draw = floorFire[0];
 
@@ -59,7 +62,7 @@ public class StoreyObject extends Actor {
 
 		deltaTime += delta;
 
-		if (deltaTime > context.gameTick / 1000.0) {
+		if (deltaTime > gameTick / 1000.0) {
 			deltaTime = 0;
 
 			// Decrease flameCnt.

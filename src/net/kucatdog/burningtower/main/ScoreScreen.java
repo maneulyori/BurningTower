@@ -14,14 +14,14 @@ public class ScoreScreen extends GameScreen implements Screen {
 
 	ScoreScreen(MainMenu game) {
 		super(game);
+		
+		font = new BitmapFont();
+		font.scale(3);
 	}
 
 	@Override
 	public void show() {
 		super.show();
-
-		font = new BitmapFont();
-		font.scale(3);
 
 		Label scoreLabel = new Label("You burnt " + score + "%!",
 				new Label.LabelStyle(font, Color.WHITE));

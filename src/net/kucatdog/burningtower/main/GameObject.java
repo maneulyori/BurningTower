@@ -25,8 +25,10 @@ public class GameObject extends Image {
 
 	private String objectType;
 	private Texture texture;
+	private Texture ashTexture;
 	private TextureRegionDrawable drawable;
 	private TextureRegionDrawable ashDrawable;
+	private Texture waterSpray;
 	private int resist;
 	private int flameCnt;
 
@@ -36,20 +38,32 @@ public class GameObject extends Image {
 
 	private boolean burningFlag = false;
 	private boolean burntFlag = false;
+	private boolean exploding = false;
+	private boolean distinguishing = false;
 
 	private int prevFlameSpread = 0;
 
-	float deltaTime = 0;
+	private float deltaTime = 0;
 	int cnt = 0;
+	private float gameTick;
 
 	public ArrayList<Point> firepts = new ArrayList<Point>();
 
 	public GameObject(BurningTower context) {
 		this.context = context;
+		this.gameTick = context.gameTick;
+
+		waterSpray = new Texture(
+				Gdx.files.internal("data/image/water_spray.png"));
 	}
 
 	@Override
 	public void draw(Batch batch, float alpha) {
+		if (objectType.equals("springkler") && isDistinguishing()) {
+			batch.draw(waterSpray, this.getX(),
+					this.getY() - waterSpray.getWidth());
+		}
+
 		super.draw(batch, alpha);
 	}
 
@@ -62,7 +76,8 @@ public class GameObject extends Image {
 		if (this.burntFlag)
 			this.setDrawable(ashDrawable);
 
-		if (this.burningFlag && this.flameSpread / 20 != prevFlameSpread) {
+		if (this.burningFlag && this.flameSpread / 20 != prevFlameSpread
+				&& objectProp != ObjectProp.DISTINGUISHER) {
 			prevFlameSpread = this.flameSpread / 20;
 			Point p = new Point();
 			p.x = (int) (this.getX() + Math.random() * this.getWidth());
@@ -71,39 +86,74 @@ public class GameObject extends Image {
 			firepts.add(p);
 		}
 
-		if (deltaTime > context.gameTick / 1000.0) {
+		if (deltaTime > gameTick / 1000.0) {
 			deltaTime = 0;
 
-			if (cnt != -1 && objectProp != ObjectProp.NORMAL)
+			if (cnt != -1 && objectProp != ObjectProp.NORMAL && burningFlag)
 				cnt++;
 
-			if (cnt < 100) {
+			if (cnt < 80 && burningFlag) {
 				switch (objectProp) {
 				case DISTINGUISHER:
+					// TODO: play sound.
+					distinguishing = true;
 					break;
 				case EXPLOSIVE:
+					// Double range, double speed.
+					// TODO: play sound.
 					range *= 2;
+					gameTick = context.gameTick / 2;
+					exploding = true;
+					break;
+				case NORMAL:
+					// Do nothing.
 					break;
 				default:
 					System.out.println("are you sane?");
 				}
 			} else {
+				exploding = false;
+				distinguishing = false;
+				gameTick = context.gameTick;
 				cnt = -1;
 			}
 
 			if (this.burningFlag) {
 				this.resist--;
-				this.flameSpread++;
+				if (objectProp != ObjectProp.DISTINGUISHER) {
+					this.flameSpread++;
 
-				for (GameObject obj : context.gameObjects) {
-					if (obj.equals(this))
-						continue;
+					for (GameObject obj : context.gameObjects) {
+						if (obj.equals(this))
+							continue;
 
-					if (obj.burntFlag) // Skip burnt object.
-						continue;
+						if (obj.burntFlag) // Skip burnt object.
+							continue;
 
-					if (obj.isItNear(this) && obj.flameCnt > 0) {
-						obj.flameCnt--;
+						if (obj.isItNear(this) && obj.flameCnt > 0) {
+							obj.flameCnt--;
+						}
+					}
+				} else if (distinguishing) {
+					float x1, y1;
+					float x2, y2;
+
+					x1 = this.getX();
+					x2 = this.getX() + context.distinguish_x;
+					y1 = this.getY() - context.distinguish_y;
+					y2 = this.getY();
+
+					for (GameObject obj : context.gameObjects) {
+						if (obj.equals(this))
+							continue;
+
+						if (obj.getX() + obj.getWidth() >= x1
+								&& obj.getX() <= x2
+								&& obj.getY() + obj.getHeight() >= y1
+								&& obj.getY() <= y2) {
+							System.out.println("Distinguish " + obj.objectType);
+							obj.distinguish();
+						}
 					}
 				}
 			}
@@ -112,7 +162,6 @@ public class GameObject extends Image {
 				this.burningFlag = true;
 			if (this.resist <= 0) {
 				this.burningFlag = false;
-				this.burntFlag = true;
 			}
 		}
 	}
@@ -125,17 +174,18 @@ public class GameObject extends Image {
 		drawable = new TextureRegionDrawable(new TextureRegion(texture));
 
 		if (leaveRuin)
-			this.ashDrawable = new TextureRegionDrawable(new TextureRegion(
-					new Texture(Gdx.files.internal("data/image/" + objectType
-							+ "_burn.png"))));
+			ashTexture = new Texture(Gdx.files.internal("data/image/"
+					+ objectType + "_burn.png"));
 		else
-			this.ashDrawable = new TextureRegionDrawable(new TextureRegion(
-					new Texture(Gdx.files.internal("data/image/ashes.png"))));
+			ashTexture = new Texture(Gdx.files.internal("data/image/ashes.png"));
+
+		this.ashDrawable = new TextureRegionDrawable(new TextureRegion(
+				ashTexture));
 
 		this.setDrawable(drawable);
 
-		this.setWidth(texture.getWidth());
-		this.setHeight(texture.getHeight());
+		this.setWidth(((int)texture.getWidth() + context.GRIDPIXELSIZE / 2) / context.GRIDPIXELSIZE * context.GRIDPIXELSIZE);
+		this.setHeight(((int)texture.getHeight() + context.GRIDPIXELSIZE / 2) / context.GRIDPIXELSIZE * context.GRIDPIXELSIZE);
 
 		this.objectType = objectType;
 	}
@@ -144,8 +194,23 @@ public class GameObject extends Image {
 		this.placeLocation = location;
 	}
 
-	public void setObjectProp(ObjectProp prop) {
-		this.objectProp = prop;
+	public void setProp(String prop) {
+		prop = prop.toLowerCase();
+		switch (prop) {
+		case "explosive":
+			this.objectProp = ObjectProp.EXPLOSIVE;
+			break;
+		case "distinguisher":
+			this.objectProp = ObjectProp.DISTINGUISHER;
+			break;
+		case "normal":
+			this.objectProp = ObjectProp.NORMAL;
+			break;
+		default:
+			System.out
+					.println("Are you sane? Setting " + prop + " to default.");
+			this.objectProp = ObjectProp.NORMAL;
+		}
 	}
 
 	public void setResist(int resist) {
@@ -154,6 +219,10 @@ public class GameObject extends Image {
 
 	public void setFlameCnt(int flameCnt) {
 		this.flameCnt = flameCnt;
+	}
+
+	public void distinguish() {
+		this.burningFlag = false;
 	}
 
 	public String getObjectType() {
@@ -174,6 +243,14 @@ public class GameObject extends Image {
 
 	public boolean isBurnt() {
 		return burntFlag;
+	}
+
+	public boolean isExploding() {
+		return exploding;
+	}
+
+	public boolean isDistinguishing() {
+		return distinguishing;
 	}
 
 	public void decreaseFlameCnt() {

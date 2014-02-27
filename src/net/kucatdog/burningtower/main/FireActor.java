@@ -24,6 +24,13 @@ public class FireActor extends Actor {
 				for (Point pt : obj.firepts) {
 					batch.draw(fireToDraw, pt.x, pt.y);
 				}
+
+				if (obj.isExploding()) {
+					batch.draw(fireToDraw, obj.getX() - context.fireRange,
+							obj.getY() - context.fireRange, obj.getWidth()
+									+ context.fireRange, obj.getHeight()
+									+ context.fireRange);
+				}
 			}
 		}
 	}

@@ -1,6 +1,9 @@
 package net.kucatdog.burningtower.main;
 
 import java.util.Iterator;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.Gdx;
@@ -31,6 +34,7 @@ public class BurningTower extends GameScreen implements Screen {
 
 	public float fireRange;
 	public float gameTick;
+	public float distinguish_x, distinguish_y;
 
 	public static boolean dragLock = false;
 
@@ -64,6 +68,8 @@ public class BurningTower extends GameScreen implements Screen {
 
 		fireRange = levelData.get("defaultRange").asFloat();
 		gameTick = levelData.get("gameTick").asFloat();
+		distinguish_x = levelData.getFloat("distinguish_x");
+		distinguish_y = levelData.getFloat("distinguish_y");
 
 		System.out.println(levelData); // print parsed level.json
 
@@ -100,12 +106,17 @@ public class BurningTower extends GameScreen implements Screen {
 				Integer.toString(level)).iterator();
 
 		StoreyObject storey = new StoreyObject(this);
-		storey.setBounds(60, 10, 600, 300);
+		storey.setBounds(60, 10, 600, 250);
 		stage.addActor(storey);
 		storeys.add(storey);
 
 		storey = new StoreyObject(this);
-		storey.setBounds(60, 310, 600, 300);
+		storey.setBounds(60, 260, 600, 250);
+		stage.addActor(storey);
+		storeys.add(storey);
+		
+		storey = new StoreyObject(this);
+		storey.setBounds(60, 510, 600, 250);
 		stage.addActor(storey);
 		storeys.add(storey);
 
@@ -126,7 +137,7 @@ public class BurningTower extends GameScreen implements Screen {
 			}
 		};
 
-		roof.setBounds(40, 610, 640, 100);
+		roof.setBounds(40, 760, 640, 100);
 		stage.addActor(roof);
 
 		while (levelIterator.hasNext()) {
@@ -145,6 +156,8 @@ public class BurningTower extends GameScreen implements Screen {
 				object.setWidth(objects.get("width").asInt());
 			if (objects.get("height") != null)
 				object.setHeight(objects.get("height").asInt());
+			if (objects.get("property") != null)
+				object.setProp(objects.get("property").asString());
 
 			if (objects.get("isMovable") == null
 					|| objects.get("isMovable").asBoolean()) {
@@ -383,7 +396,7 @@ public class BurningTower extends GameScreen implements Screen {
 		if (gameObjects.size != 0) {
 			timerLabel.setText(fireTimer.getTimerStr());
 			scoreLabel.setText("Burnt " + 100
-					* (gameObjects.size + storeys.size - 1 - notburn)
+					* (gameObjects.size + storeys.size - notburn)
 					/ (gameObjects.size + storeys.size - 1) + "%");
 		}
 	}
@@ -406,7 +419,18 @@ public class BurningTower extends GameScreen implements Screen {
 
 		game.scoreScreen.setScore(100 * (gameObjects.size - notburn)
 				/ gameObjects.size);
-		game.setScreen(game.scoreScreen);
+
+		ScheduledExecutorService worker = Executors
+				.newSingleThreadScheduledExecutor();
+
+		worker.schedule(new Runnable() {
+
+			@Override
+			public void run() {
+				game.setScreen(game.scoreScreen);
+
+			}
+		}, 2000, TimeUnit.MILLISECONDS);
 	}
 
 	public void playBGM() {

@@ -41,7 +41,6 @@ public class GameScreen implements Screen {
 
 	@Override
 	public void pause() {
-		// TODO Auto-generated method stub
 
 	}
 
@@ -53,13 +52,9 @@ public class GameScreen implements Screen {
 		Gdx.gl.glViewport(0, 0, Gdx.graphics.getWidth(),
 				Gdx.graphics.getHeight());
 
-		batch.begin();
 
 		stage.act(delta);
 		stage.draw();
-
-		batch.end();
-
 	}
 
 	@Override
@@ -68,10 +63,10 @@ public class GameScreen implements Screen {
 		cam.viewportWidth = width;
 		if (VIRTUAL_WIDTH / cam.viewportWidth < VIRTUAL_HEIGHT
 				/ cam.viewportHeight) {
-			// sett the right zoom direct
+			// set the right zoom direct
 			cam.zoom = VIRTUAL_HEIGHT / cam.viewportHeight;
 		} else {
-			// sett the right zoom direct
+			// set the right zoom direct
 			cam.zoom = VIRTUAL_WIDTH / cam.viewportWidth;
 		}
 		cam.position.set(cam.zoom * cam.viewportWidth / 2.0f, cam.zoom
