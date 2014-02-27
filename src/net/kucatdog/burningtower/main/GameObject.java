@@ -161,6 +161,7 @@ public class GameObject extends Image {
 			if (this.flameCnt <= 0)
 				this.burningFlag = true;
 			if (this.resist <= 0) {
+				this.burntFlag = true;
 				this.burningFlag = false;
 			}
 		}
@@ -184,10 +185,22 @@ public class GameObject extends Image {
 
 		this.setDrawable(drawable);
 
-		this.setWidth(((int)texture.getWidth() + context.GRIDPIXELSIZE / 2) / context.GRIDPIXELSIZE * context.GRIDPIXELSIZE);
-		this.setHeight(((int)texture.getHeight() + context.GRIDPIXELSIZE / 2) / context.GRIDPIXELSIZE * context.GRIDPIXELSIZE);
+		this.setWidth(texture.getWidth());
+		this.setHeight(texture.getHeight());
 
 		this.objectType = objectType;
+	}
+
+	@Override
+	public void setWidth(float width) {
+		super.setWidth(((int) width + context.GRIDPIXELSIZE / 2)
+				/ context.GRIDPIXELSIZE * context.GRIDPIXELSIZE);
+	}
+
+	@Override
+	public void setHeight(float height) {
+		super.setHeight(((int) height + context.GRIDPIXELSIZE / 2)
+				/ context.GRIDPIXELSIZE * context.GRIDPIXELSIZE);
 	}
 
 	public void setPlaceLocation(PlaceLocation location) {

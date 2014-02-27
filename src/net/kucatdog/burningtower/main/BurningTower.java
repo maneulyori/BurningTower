@@ -114,7 +114,7 @@ public class BurningTower extends GameScreen implements Screen {
 		storey.setBounds(60, 260, 600, 250);
 		stage.addActor(storey);
 		storeys.add(storey);
-		
+
 		storey = new StoreyObject(this);
 		storey.setBounds(60, 510, 600, 250);
 		stage.addActor(storey);
@@ -375,7 +375,9 @@ public class BurningTower extends GameScreen implements Screen {
 		for (GameObject obj : gameObjects) {
 			if (obj.isBurning()) {
 				isBurning = true;
-			} else if (!(obj.isBurning() || obj.isBurnt())) {
+			}
+
+			if (!obj.isBurnt()) {
 				notburn++;
 			}
 		}
@@ -383,7 +385,9 @@ public class BurningTower extends GameScreen implements Screen {
 		for (StoreyObject obj : storeys) {
 			if (obj.isBurning()) {
 				isBurning = true;
-			} else if (!(obj.isBurning() || obj.isBurnt())) {
+			}
+
+			if (!obj.isBurnt()) {
 				notburn++;
 			}
 		}
@@ -412,13 +416,20 @@ public class BurningTower extends GameScreen implements Screen {
 		stopBGM();
 
 		for (GameObject obj : gameObjects) {
-			if (!(obj.isBurning() || obj.isBurnt())) {
+			if (!obj.isBurnt()) {
 				notburn++;
 			}
 		}
 
-		game.scoreScreen.setScore(100 * (gameObjects.size - notburn)
-				/ gameObjects.size);
+		for (StoreyObject obj : storeys) {
+			if (!obj.isBurnt()) {
+				notburn++;
+			}
+		}
+
+		game.scoreScreen.setScore(100
+				* (gameObjects.size + storeys.size - notburn)
+				/ (gameObjects.size + storeys.size - 1));
 
 		ScheduledExecutorService worker = Executors
 				.newSingleThreadScheduledExecutor();

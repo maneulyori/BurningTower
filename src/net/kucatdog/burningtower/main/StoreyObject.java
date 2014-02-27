@@ -1,13 +1,10 @@
 package net.kucatdog.burningtower.main;
 
-import java.util.ArrayList;
-
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.Texture.TextureWrap;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.scenes.scene2d.Actor;
-import com.badlogic.gdx.utils.Array;
 
 public class StoreyObject extends Actor {
 
@@ -40,7 +37,7 @@ public class StoreyObject extends Actor {
 							+ ".png"));
 			floorFire[i].setWrap(TextureWrap.Repeat, TextureWrap.Repeat);
 		}
-		
+
 		gameTick = context.gameTick;
 
 		floorFire_draw = floorFire[0];

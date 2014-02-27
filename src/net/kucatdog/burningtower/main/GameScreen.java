@@ -52,7 +52,6 @@ public class GameScreen implements Screen {
 		Gdx.gl.glViewport(0, 0, Gdx.graphics.getWidth(),
 				Gdx.graphics.getHeight());
 
-
 		stage.act(delta);
 		stage.draw();
 	}

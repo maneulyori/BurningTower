@@ -14,7 +14,7 @@ public class ScoreScreen extends GameScreen implements Screen {
 
 	ScoreScreen(MainMenu game) {
 		super(game);
-		
+
 		font = new BitmapFont();
 		font.scale(3);
 	}
