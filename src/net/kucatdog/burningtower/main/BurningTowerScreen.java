@@ -300,6 +300,7 @@ public class BurningTowerScreen extends GameScreen implements Screen {
 								}
 							}
 
+							System.out.println(thisStorey);
 							object.setX((int) (object.getX() - thisStorey
 									.getX())
 									/ GRIDPIXELSIZE
@@ -474,6 +475,7 @@ public class BurningTowerScreen extends GameScreen implements Screen {
 		}
 
 		int notburn = 0;
+		int distinguisher = 0;
 		boolean isBurning = false;
 
 		for (GameObject obj : gameObjects) {
@@ -481,8 +483,17 @@ public class BurningTowerScreen extends GameScreen implements Screen {
 				isBurning = true;
 			}
 
-			if (!obj.isBurnt()) {
+			if (!obj.isBurnt()
+					&& obj.getProp() != GameObject.ObjectProp.DISTINGUISHER) {
 				notburn++;
+			} else if (obj.getProp() != GameObject.ObjectProp.DISTINGUISHER) {
+				distinguisher++;
+			}
+		}
+
+		for (StoreyObject obj : storeys) {
+			if (obj.isBurning()) {
+				isBurning = true;
 			}
 		}
 
@@ -493,8 +504,9 @@ public class BurningTowerScreen extends GameScreen implements Screen {
 
 		if (gameObjects.size != 0) {
 			timerLabel.setText(fireTimer.getTimerStr());
-			scoreLabel.setText("Burnt " + 100 * (gameObjects.size - notburn)
-					/ gameObjects.size + "%");
+			scoreLabel.setText("Burnt " + 100
+					* (gameObjects.size - notburn - distinguisher)
+					/ (gameObjects.size - distinguisher) + "%");
 			counterLabel.setText(moveCnt + " moves left.");
 		}
 	}
@@ -506,6 +518,7 @@ public class BurningTowerScreen extends GameScreen implements Screen {
 
 	public void stopBurning() {
 		int notburn = 0;
+		int distinguisher = 0;
 
 		game.stopAudio("fire");
 		game.playAudio("gameplay");
@@ -514,14 +527,17 @@ public class BurningTowerScreen extends GameScreen implements Screen {
 			if (!obj.isBurnt()
 					&& obj.getProp() != GameObject.ObjectProp.DISTINGUISHER) {
 				notburn++;
+			} else if (obj.getProp() != GameObject.ObjectProp.DISTINGUISHER) {
+				distinguisher++;
 			}
 		}
 
-		game.scoreScreen.setScore(100 * (gameObjects.size - notburn)
-				/ gameObjects.size);
+		game.scoreScreen.setScore(100
+				* (gameObjects.size - notburn - distinguisher)
+				/ (gameObjects.size - distinguisher));
 
-		final int score = 100 * (gameObjects.size + storeys.size - notburn)
-				/ (gameObjects.size + storeys.size - 1);
+		final int score = 100 * (gameObjects.size - notburn - distinguisher)
+				/ (gameObjects.size - distinguisher);
 
 		ScheduledExecutorService worker = Executors
 				.newSingleThreadScheduledExecutor();

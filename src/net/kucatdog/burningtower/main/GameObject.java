@@ -113,9 +113,31 @@ public class GameObject extends Image {
 				}
 			} else {
 				exploding = false;
-				distinguishing = false;
+				//distinguishing = false;
 				gameTick = context.gameTick;
 				cnt = -1;
+			}
+			
+			if (distinguishing) {
+				float x1, y1;
+				float x2, y2;
+
+				x1 = this.getX();
+				x2 = this.getX() + context.distinguish_x;
+				y1 = this.getY() - context.distinguish_y;
+				y2 = this.getY();
+
+				for (GameObject obj : context.gameObjects) {
+					if (obj.equals(this))
+						continue;
+
+					if ((obj.getX() + obj.getWidth() >= x1
+							|| obj.getX() <= x2)
+							&& (obj.getY() + obj.getHeight() >= y1
+							|| obj.getY() <= y2)) {
+						obj.distinguish();
+					}
+				}
 			}
 
 			if (this.burningFlag) {
@@ -132,27 +154,6 @@ public class GameObject extends Image {
 
 						if (obj.isItNear(this) && obj.flameCnt > 0) {
 							obj.flameCnt--;
-						}
-					}
-				} else if (distinguishing) {
-					float x1, y1;
-					float x2, y2;
-
-					x1 = this.getX();
-					x2 = this.getX() + context.distinguish_x;
-					y1 = this.getY() - context.distinguish_y;
-					y2 = this.getY();
-
-					for (GameObject obj : context.gameObjects) {
-						if (obj.equals(this))
-							continue;
-
-						if (obj.getX() + obj.getWidth() >= x1
-								&& obj.getX() <= x2
-								&& obj.getY() + obj.getHeight() >= y1
-								&& obj.getY() <= y2) {
-							System.out.println("Distinguish " + obj.objectType);
-							obj.distinguish();
 						}
 					}
 				}
@@ -276,8 +277,8 @@ public class GameObject extends Image {
 		float width = obj.getWidth();
 		float height = obj.getHeight();
 
-		if ((x + width + range > this.getX() && x - range < this.getX()
-				&& y + height + range > this.getY() && y - range < this.getY()))
+		if ((x + width + range > this.getX() && x - range < this.getX() + this.getWidth()
+				&& y + height + range > this.getY() && y - range < this.getY() + this.getHeight()))
 			return true;
 
 		return false;
