@@ -2,13 +2,13 @@ package net.kucatdog.burningtower.main;
 
 public class CountdownTimer implements Runnable {
 
-	BurningTower context;
+	BurningTowerScreen context;
 	int timer = 0;
 
 	private volatile boolean terminateFlag = false;
 	private volatile boolean pauseFlag = false;
 
-	CountdownTimer(BurningTower context) {
+	CountdownTimer(BurningTowerScreen context) {
 		this.context = context;
 	}
 

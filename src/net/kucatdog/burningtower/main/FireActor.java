@@ -7,9 +7,9 @@ import com.badlogic.gdx.utils.TimeUtils;
 
 public class FireActor extends Actor {
 
-	BurningTower context;
+	BurningTowerScreen context;
 
-	public FireActor(BurningTower context) {
+	public FireActor(BurningTowerScreen context) {
 		this.context = context;
 	}
 

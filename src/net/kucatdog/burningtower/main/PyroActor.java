@@ -11,11 +11,11 @@ public class PyroActor extends Image {
 	Texture texture;
 	boolean toggleDirection = false;
 	boolean burnit = false;
-	BurningTower context;
+	BurningTowerScreen context;
 
 	GameObject fireobj;
 
-	PyroActor(BurningTower context) {
+	PyroActor(BurningTowerScreen context) {
 		texture = new Texture(Gdx.files.internal("data/image/pyro.png"));
 
 		this.setDrawable(new TextureRegionDrawable(new TextureRegion(texture)));
@@ -52,7 +52,7 @@ public class PyroActor extends Image {
 					obj.setFire();
 				}
 			}
-			context.dragLock = true;
+			context.setDragLock();
 			context.playBGM();
 		}
 	}

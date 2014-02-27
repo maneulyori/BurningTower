@@ -12,12 +12,12 @@ public class GameScreen implements Screen {
 	final int VIRTUAL_WIDTH = 768;
 	final int VIRTUAL_HEIGHT = 1280;
 
-	MainMenu game;
+	BurningTower game;
 	OrthographicCamera cam;
 	Stage stage;
 	SpriteBatch batch;
 
-	GameScreen(MainMenu game) {
+	GameScreen(BurningTower game) {
 		this.game = game;
 
 		cam = new OrthographicCamera(VIRTUAL_WIDTH, VIRTUAL_HEIGHT);

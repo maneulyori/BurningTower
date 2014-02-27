@@ -8,7 +8,7 @@ import com.badlogic.gdx.scenes.scene2d.Actor;
 
 public class StoreyObject extends Actor {
 
-	BurningTower context;
+	BurningTowerScreen context;
 
 	private Texture wall_right;
 	private Texture wall_left;
@@ -28,7 +28,7 @@ public class StoreyObject extends Actor {
 	private int resist = 100;
 	private float gameTick;
 
-	StoreyObject(BurningTower context) {
+	StoreyObject(BurningTowerScreen context) {
 		this.context = context;
 
 		for (int i = 0; i < floorFire.length; i++) {

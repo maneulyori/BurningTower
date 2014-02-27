@@ -8,7 +8,7 @@ public class SplashScreen extends GameScreen implements Screen {
 
 	Texture splash;
 
-	SplashScreen(MainMenu game) {
+	SplashScreen(BurningTower game) {
 		super(game);
 
 		splash = new Texture(Gdx.files.internal("data/image/start.png"));

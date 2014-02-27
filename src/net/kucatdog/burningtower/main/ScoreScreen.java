@@ -12,7 +12,7 @@ public class ScoreScreen extends GameScreen implements Screen {
 
 	private BitmapFont font;
 
-	ScoreScreen(MainMenu game) {
+	ScoreScreen(BurningTower game) {
 		super(game);
 
 		font = new BitmapFont();

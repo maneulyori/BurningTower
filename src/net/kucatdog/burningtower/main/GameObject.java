@@ -19,7 +19,7 @@ public class GameObject extends Image {
 		EXPLOSIVE, DISTINGUISHER, NORMAL
 	}
 
-	BurningTower context;
+	BurningTowerScreen context;
 
 	private float range;
 
@@ -49,7 +49,7 @@ public class GameObject extends Image {
 
 	public ArrayList<Point> firepts = new ArrayList<Point>();
 
-	public GameObject(BurningTower context) {
+	public GameObject(BurningTowerScreen context) {
 		this.context = context;
 		this.gameTick = context.gameTick;
 
