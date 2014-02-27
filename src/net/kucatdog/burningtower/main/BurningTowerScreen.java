@@ -579,12 +579,8 @@ public class BurningTowerScreen extends GameScreen implements Screen {
 					}
 				});
 
-				System.out.println(window.getWidth());
-
 				window.setPosition((VIRTUAL_WIDTH - window.getWidth()) / 2,
 						VIRTUAL_HEIGHT / 2);
-
-				System.out.println(window.getX());
 
 				stage.addActor(window);
 			}
