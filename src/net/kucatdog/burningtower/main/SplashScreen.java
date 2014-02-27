@@ -97,12 +97,12 @@ public class SplashScreen extends BurningTowerScreen {
 
 	@Override
 	public void stopBurning() {
-		fireactor.setFireForever();
 	}
 	
 	@Override
 	public void startFire() {
 		pyro.burnIt();
+		fireactor.setFireForever();
 		fireTimer.setTime(0);
 	}
 

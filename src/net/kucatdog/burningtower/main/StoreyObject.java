@@ -24,7 +24,6 @@ public class StoreyObject extends Actor {
 
 	private Boolean fireFlag = false;
 
-	// TODO: Read it from config
 	private int flameCnt = 100;
 	private int resist = 100;
 	private float gameTick;
@@ -150,5 +149,17 @@ public class StoreyObject extends Actor {
 
 	public boolean isBurnt() {
 		return resist <= 0;
+	}
+	
+	public void setResist(int resist) {
+		this.resist = resist;
+	}
+	
+	public void setFlammable(int flammable) {
+		this.flameCnt = flammable;
+	}
+	
+	public void distinguish() {
+		this.fireFlag = false;
 	}
 }

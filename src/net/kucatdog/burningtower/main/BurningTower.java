@@ -49,7 +49,7 @@ public class BurningTower extends Game {
 
 		gameMain = new BurningTowerScreen(this, "1"); // TODO: get level from
 														// user.
-		splash = new SplashScreen(this, "1");
+		splash = new SplashScreen(this, "splash"); // Load splash level
 
 		scoreScreen = new ScoreScreen(this);
 

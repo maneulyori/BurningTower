@@ -138,6 +138,11 @@ public class GameObject extends Image {
 						obj.distinguish();
 					}
 				}
+				
+				for (StoreyObject obj : context.storeys) {
+					if(obj.getY() > y1)
+						obj.distinguish();
+				}
 			}
 
 			if (this.burningFlag) {
@@ -179,7 +184,7 @@ public class GameObject extends Image {
 			ashTexture = new Texture(Gdx.files.internal("data/image/"
 					+ objectType + "_burn.png"));
 		else
-			ashTexture = new Texture(Gdx.files.internal("data/image/ashes.png"));
+			ashTexture = texture;//new Texture(Gdx.files.internal("data/image/ashes.png"));
 
 		this.ashDrawable = new TextureRegionDrawable(new TextureRegion(
 				ashTexture));

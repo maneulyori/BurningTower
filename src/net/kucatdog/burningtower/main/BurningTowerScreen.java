@@ -53,7 +53,7 @@ public class BurningTowerScreen extends GameScreen implements Screen {
 	private Thread timerThread;
 
 	public Array<GameObject> gameObjects = new Array<GameObject>();
-	private Array<StoreyObject> storeys = new Array<StoreyObject>();
+	Array<StoreyObject> storeys = new Array<StoreyObject>();
 
 	private JsonValue jsonData;
 	private JsonValue levelData;
@@ -210,20 +210,23 @@ public class BurningTowerScreen extends GameScreen implements Screen {
 
 		moveCnt = levelData.getInt("moveCount");
 
-		StoreyObject storey = new StoreyObject(this);
-		storey.setBounds(60, 10, 600, 250);
-		objectDisplayer.addActor(storey);
-		storeys.add(storey);
+		JsonValue buildingData = levelData.get("building");
+		JsonValue storeyData = buildingData.get("storey");
 
-		storey = new StoreyObject(this);
-		storey.setBounds(60, 260, 600, 250);
-		objectDisplayer.addActor(storey);
-		storeys.add(storey);
+		StoreyObject storey = null;
+		int previousHeight = storeyData.getInt("locationY");
 
-		storey = new StoreyObject(this);
-		storey.setBounds(60, 510, 600, 250);
-		objectDisplayer.addActor(storey);
-		storeys.add(storey);
+		for (int i = 0; i < buildingData.getInt("floorcnt"); i++) {
+			storey = new StoreyObject(this);
+			storey.setFlammable(storeyData.getInt("flammable"));
+			storey.setResist(storeyData.getInt("resist"));
+			storey.setBounds(storeyData.getInt("locationX"), previousHeight,
+					storeyData.getInt("width"), storeyData.getInt("height"));
+
+			previousHeight += storeyData.getInt("height");
+			objectDisplayer.addActor(storey);
+			storeys.add(storey);
+		}
 
 		Actor roof = new Actor() {
 			Texture texture = new Texture(
@@ -242,7 +245,8 @@ public class BurningTowerScreen extends GameScreen implements Screen {
 			}
 		};
 
-		roof.setBounds(40, 760, 640, 100);
+		roof.setBounds(storey.getX() - 40, storey.getY() + storey.getHeight(),
+				storey.getWidth() + 80, 100);
 		objectDisplayer.addActor(roof);
 
 		while (levelIterator.hasNext()) {
@@ -363,7 +367,10 @@ public class BurningTowerScreen extends GameScreen implements Screen {
 						@Override
 						public void touchUp(InputEvent event, float x, float y,
 								int pointer, int button) {
-							// Check object collapses.
+
+							System.out.println("Object "
+									+ object.getObjectType() + " X: "
+									+ object.getX() + " Y: " + object.getY());
 
 							for (GameObject obj : gameObjects) {
 
@@ -486,7 +493,7 @@ public class BurningTowerScreen extends GameScreen implements Screen {
 			if (!obj.isBurnt()
 					&& obj.getProp() != GameObject.ObjectProp.DISTINGUISHER) {
 				notburn++;
-			} else if (obj.getProp() != GameObject.ObjectProp.DISTINGUISHER) {
+			} else if (obj.getProp() == GameObject.ObjectProp.DISTINGUISHER) {
 				distinguisher++;
 			}
 		}
@@ -527,7 +534,7 @@ public class BurningTowerScreen extends GameScreen implements Screen {
 			if (!obj.isBurnt()
 					&& obj.getProp() != GameObject.ObjectProp.DISTINGUISHER) {
 				notburn++;
-			} else if (obj.getProp() != GameObject.ObjectProp.DISTINGUISHER) {
+			} else if (obj.getProp() == GameObject.ObjectProp.DISTINGUISHER) {
 				distinguisher++;
 			}
 		}
