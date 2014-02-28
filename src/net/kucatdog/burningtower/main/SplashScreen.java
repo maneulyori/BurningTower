@@ -9,6 +9,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Label;
 public class SplashScreen extends BurningTowerScreen {
 
 	private BurningTower game;
+	boolean doubleCallPrevent = false;
 
 	class ObjectDisplayer extends BurningTowerScreen.ObjectDisplayer {
 
@@ -29,6 +30,8 @@ public class SplashScreen extends BurningTowerScreen {
 			}
 			startFire();
 
+			skip = true;
+
 			displayLogoText();
 		}
 	}
@@ -45,12 +48,16 @@ public class SplashScreen extends BurningTowerScreen {
 
 		logoText = new BitmapFont();
 		logoText.scale(10);
-		
+
 		this.gameTick = 10;
 	}
 
 	@Override
 	public void show() {
+
+		objectDisplayer.actorList.clear();
+		objectDisplayer.clearSkip();
+		doubleCallPrevent = false;
 		super.show();
 	}
 
@@ -63,18 +70,22 @@ public class SplashScreen extends BurningTowerScreen {
 	public void pause() {
 		super.pause();
 	}
-	
+
 	@Override
 	void drawUI() {
-		//Do NOTHING
+		// Do NOTHING
 	}
 
 	@Override
 	public void render(float delta) {
 
 		if (Gdx.input.justTouched()) {
-			if (objectDisplayer.getSkip())
-				game.setScreen(game.gameMain);
+			if (objectDisplayer.getSkip()) {
+				if (!doubleCallPrevent) {
+					game.setScreen(game.level1);
+					doubleCallPrevent = true;
+				}
+			}
 		}
 
 		super.render(delta);
@@ -98,7 +109,7 @@ public class SplashScreen extends BurningTowerScreen {
 	@Override
 	public void stopBurning() {
 	}
-	
+
 	@Override
 	public void startFire() {
 		pyro.burnIt();

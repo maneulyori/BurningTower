@@ -30,7 +30,7 @@ public class GameObject extends Image {
 	private TextureRegionDrawable ashDrawable;
 	private Texture waterSpray;
 	private int resist;
-	private int flameCnt;
+	int flameCnt;
 
 	private int flameSpread = 0;
 	private PlaceLocation placeLocation = PlaceLocation.WALL;
@@ -70,6 +70,13 @@ public class GameObject extends Image {
 
 	@Override
 	public void act(float delta) {
+		if (this.flameCnt <= 0)
+			this.burningFlag = true;
+		if (this.resist <= 0) {
+			this.burntFlag = true;
+			this.burningFlag = false;
+		}
+		
 		range = context.fireRange;
 
 		deltaTime += delta;
@@ -164,13 +171,6 @@ public class GameObject extends Image {
 					}
 				}
 			}
-
-			if (this.flameCnt <= 0)
-				this.burningFlag = true;
-			if (this.resist <= 0) {
-				this.burntFlag = true;
-				this.burningFlag = false;
-			}
 		}
 	}
 
@@ -253,6 +253,7 @@ public class GameObject extends Image {
 	}
 
 	public void setFlameCnt(int flameCnt) {
+		System.out.println(flameCnt);
 		this.flameCnt = flameCnt;
 	}
 

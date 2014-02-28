@@ -12,6 +12,7 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
@@ -63,6 +64,8 @@ public class BurningTowerScreen extends GameScreen implements Screen {
 	PyroActor pyro;
 	FireActor fireactor;
 
+	SpriteBatch HUDbatch;
+
 	ObjectDisplayer objectDisplayer;
 
 	class ObjectDisplayer implements Runnable {
@@ -88,6 +91,8 @@ public class BurningTowerScreen extends GameScreen implements Screen {
 					}
 				}
 			}
+
+			skip = true;
 
 			for (Actor actor : actorList) {
 				if (!(actor instanceof StoreyObject)) {
@@ -115,6 +120,10 @@ public class BurningTowerScreen extends GameScreen implements Screen {
 
 		public void setSkip() {
 			skip = true;
+		}
+
+		public void clearSkip() {
+			skip = false;
 		}
 
 		public boolean getSkip() {
@@ -147,6 +156,8 @@ public class BurningTowerScreen extends GameScreen implements Screen {
 
 		fireTimer = new CountdownTimer(this);
 		objectDisplayer = new ObjectDisplayer();
+
+		HUDbatch = new SpriteBatch();
 	}
 
 	void overrideObjectDisplayer(ObjectDisplayer objectDisplayer) {
@@ -154,22 +165,20 @@ public class BurningTowerScreen extends GameScreen implements Screen {
 	}
 
 	void drawUI() {
-
-		fireButton.setPosition(200, 1200);
-		fireButton.setSize(50, 50);
-		stage.addActor(fireButton);
-
-		timerLabel.setPosition(260, 1240);
-		stage.addActor(timerLabel);
-
-		scoreLabel.setPosition(260, 1200);
-		stage.addActor(scoreLabel);
-
-		counterLabel.setPosition(260, 1160);
-		stage.addActor(counterLabel);
+		/*
+		 * fireButton.setPosition(200, 1200); fireButton.setSize(50, 50);
+		 * stage.addActor(fireButton);
+		 * 
+		 * timerLabel.setPosition(260, 1240); stage.addActor(timerLabel);
+		 * 
+		 * scoreLabel.setPosition(260, 1200); stage.addActor(scoreLabel);
+		 * 
+		 * counterLabel.setPosition(260, 1160); stage.addActor(counterLabel);
+		 */
 
 		crosshair.setSize(64, 64);
-		crosshair.setPosition(64, 64);
+		crosshair.setPosition(130 - crosshair.getWidth() / 2,
+				40 - crosshair.getHeight() / 2);
 
 		stage.addActor(crosshair);
 
@@ -243,6 +252,9 @@ public class BurningTowerScreen extends GameScreen implements Screen {
 				storey.getWidth() + 80, 100);
 		objectDisplayer.addActor(roof);
 
+		game.setLock(roof.getX() + roof.getWidth() + 10,
+				roof.getY() + roof.getHeight() + 10);
+
 		while (levelIterator.hasNext()) {
 			JsonValue objects = levelIterator.next();
 
@@ -295,12 +307,10 @@ public class BurningTowerScreen extends GameScreen implements Screen {
 										&& object.getY() < obj.getY()
 												+ obj.getHeight()) {
 									thisStorey = obj;
-									System.out.println(thisStorey.toString());
 									break;
 								}
 							}
 
-							System.out.println(thisStorey);
 							object.setX((int) (object.getX() - thisStorey
 									.getX())
 									/ GRIDPIXELSIZE
@@ -366,7 +376,7 @@ public class BurningTowerScreen extends GameScreen implements Screen {
 
 							System.out.println("Object "
 									+ object.getObjectType() + " X: "
-									+ object.getX() + " Y: " + object.getY());
+									+ object.getX() + " Y: " + object.getY() + " " + object.flameCnt);
 
 							for (GameObject obj : gameObjects) {
 
@@ -446,7 +456,7 @@ public class BurningTowerScreen extends GameScreen implements Screen {
 		pyro = new PyroActor(this);
 
 		pyro.setPosition(700, 10);
-		pyro.setFirePt(130, 10);
+		pyro.setFirePt(130, 40);
 		pyro.setScale((float) 1.5);
 		objectDisplayer.addActor(pyro);
 
@@ -529,6 +539,9 @@ public class BurningTowerScreen extends GameScreen implements Screen {
 
 		});
 
+		resize(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+		bitmapFont.setScale(2 / zoom);
+
 		timerLabel = new Label("PLACEHOLDER", new Label.LabelStyle(bitmapFont,
 				Color.WHITE));
 		scoreLabel = new Label("PLACEHOLDER", new Label.LabelStyle(bitmapFont,
@@ -559,6 +572,7 @@ public class BurningTowerScreen extends GameScreen implements Screen {
 		gameObjects.clear();
 		storeys.clear();
 		objectDisplayer.actorList.clear();
+		objectDisplayer.clearSkip();
 	}
 
 	@Override
@@ -577,9 +591,42 @@ public class BurningTowerScreen extends GameScreen implements Screen {
 	public void render(float delta) {
 		super.render(delta);
 
-		if (Gdx.input.justTouched()) {
-			if (!objectDisplayer.getSkip())
-				objectDisplayer.setSkip();
+		if (!(this instanceof SplashScreen)) {
+			batch.begin();
+			fireButton.setPosition(200 / zoom, 1200 / zoom);
+			fireButton.setSize(50 / zoom, 50 / zoom);
+			fireButton.draw(batch, 1);
+
+			timerLabel.setPosition(260 / zoom, 1240 / zoom);
+			timerLabel.draw(batch, 1);
+
+			scoreLabel.setPosition(260 / zoom, 1200 / zoom);
+			scoreLabel.draw(batch, 1);
+
+			counterLabel.setPosition(260 / zoom, 1160 / zoom);
+			counterLabel.draw(batch, 1);
+			batch.end();
+
+			if (Gdx.input.justTouched()) {
+				if (!objectDisplayer.getSkip()) {
+					objectDisplayer.setSkip();
+				} else {
+					if (fireButton.getX() < Gdx.input.getX()
+							&& fireButton.getX() + fireButton.getWidth() > Gdx.input
+									.getX()
+							&& fireButton.getY() < (Gdx.graphics.getHeight() - Gdx.input
+									.getY())
+							&& fireButton.getY() + fireButton.getHeight() > (Gdx.graphics
+									.getHeight() - Gdx.input.getY())) {
+						self.startFire();
+					}
+				}
+			}
+		} else {
+			if (Gdx.input.justTouched()) {
+				if (!objectDisplayer.getSkip())
+					objectDisplayer.setSkip();
+			}
 		}
 
 		int notburn = 0;
@@ -587,7 +634,8 @@ public class BurningTowerScreen extends GameScreen implements Screen {
 		boolean isBurning = false;
 
 		for (GameObject obj : gameObjects) {
-			if (obj.isBurning()) {
+			if (obj.isBurning()
+					&& obj.getProp() != GameObject.ObjectProp.DISTINGUISHER) {
 				isBurning = true;
 			}
 
@@ -666,7 +714,7 @@ public class BurningTowerScreen extends GameScreen implements Screen {
 
 				window.pad(30);
 
-				window.setPosition(200, VIRTUAL_HEIGHT / 2);
+				window.setPosition(200, game.VIRTUAL_HEIGHT / 2);
 
 				Label label = new Label(score
 						+ "% burned.\nTouch to go main screen",
@@ -680,14 +728,19 @@ public class BurningTowerScreen extends GameScreen implements Screen {
 					@Override
 					public boolean touchDown(InputEvent event, float x,
 							float y, int pointer, int button) {
-						game.setScreen(game.scoreScreen);
+
+						if (score >= 90 && level.equals("1"))
+							game.setScreen(game.level2);
+						else
+							game.setScreen(game.scoreScreen);
 
 						return true;
 					}
 				});
 
-				window.setPosition((VIRTUAL_WIDTH - window.getWidth()) / 2,
-						VIRTUAL_HEIGHT / 2);
+				window.setPosition(
+						(game.VIRTUAL_WIDTH - window.getWidth()) / 2,
+						game.VIRTUAL_HEIGHT / 2);
 
 				stage.addActor(window);
 			}

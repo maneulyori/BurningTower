@@ -98,7 +98,7 @@ public class StoreyObject extends Actor {
 
 					if (obj.getY() > this.getY()
 							&& obj.getY() < this.getY() + context.fireRange) {
-						if (obj.getX() > fire_start && obj.getX() < fire_end) {
+						if (obj.getX() + obj.getWidth() > fire_start && obj.getX() < fire_end) {
 							obj.decreaseFlameCnt();
 						}
 					}
