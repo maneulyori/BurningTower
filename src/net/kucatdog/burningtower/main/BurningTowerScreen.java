@@ -376,7 +376,7 @@ public class BurningTowerScreen extends GameScreen implements Screen {
 
 							System.out.println("Object "
 									+ object.getObjectType() + " X: "
-									+ object.getX() + " Y: " + object.getY() + " " + object.flameCnt);
+									+ object.getX() + " Y: " + object.getY());
 
 							for (GameObject obj : gameObjects) {
 

@@ -96,9 +96,10 @@ public class StoreyObject extends Actor {
 					if (obj.isBurnt()) // Skip burnt object.
 						continue;
 
-					if (obj.getY() > this.getY()
-							&& obj.getY() < this.getY() + context.fireRange) {
-						if (obj.getX() + obj.getWidth() > fire_start && obj.getX() < fire_end) {
+					if (obj.getY() >= this.getY()
+							&& obj.getY() <= this.getY() + context.fireRange) {
+						if (obj.getX() + obj.getWidth() >= fire_start
+								&& obj.getX() <= fire_end) {
 							obj.decreaseFlameCnt();
 						}
 					}
@@ -163,7 +164,7 @@ public class StoreyObject extends Actor {
 	public void setFlammable(int flammable) {
 		this.flameCnt = flammable;
 	}
-	
+
 	public int getFloorHeight() {
 		return floor.getHeight();
 	}

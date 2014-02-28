@@ -253,7 +253,6 @@ public class GameObject extends Image {
 	}
 
 	public void setFlameCnt(int flameCnt) {
-		System.out.println(flameCnt);
 		this.flameCnt = flameCnt;
 	}
 
